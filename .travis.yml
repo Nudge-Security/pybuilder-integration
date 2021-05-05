@@ -5,7 +5,7 @@ install: 'pip install pybuilder '
 script: echo "pyb install_dependencies package    -P build_number=0.1.${TRAVIS_BUILD_NUMBER}"
 deploy:
   provider: pypi
-  user: _token_
+  user:  __token__
   distributions: sdist
   server: https://upload.pypi.org/legacy/
   password:
