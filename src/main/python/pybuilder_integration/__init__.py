@@ -4,7 +4,7 @@ from pybuilder.core import depends, task, Project, Logger
 from pybuilder.errors import BuildFailedException
 from pybuilder.pluginhelper.external_command import ExternalCommandBuilder, ExternalCommandResult
 from pybuilder.reactor import Reactor
-from pybuilder.utils import  discover_files_matching, read_file, execute_command
+from pybuilder.utils import discover_files_matching, read_file, execute_command
 
 RAML_MODULE_GLOB = 'raml_module_glob'
 PROTRACTOR_TEST_DIR = "protractor_test_dir"
@@ -39,7 +39,7 @@ def _run_protractor_tests_in_directory(target_url, work_dir, logger, project, re
     install_protractor(project=project, logger=logger, reactor=reactor)
     executable = project.expand_path("./node_modules/protractor/bin/protractor")
     # Run the actual tests against the baseURL provided by ${integration_target}
-    command = WorkingDirCommandBuilder(executable, project, work_dir)
+    command = WorkingDirCommandBuilder(executable, project, work_dir, reactor)
     command.use_argument("--baseUrl={}").formatted_with(target_url)
     res = command.run("{}/{}".format(prepare_logs_directory(project), 'protractor_run'))
     if res.exit_code != 0:
@@ -68,13 +68,13 @@ def _install_npm_tool(tool_name: str, logger: Logger, project: Project, reactor:
 
 class WorkingDirCommandBuilder(ExternalCommandBuilder):
 
-    def __init__(self, command_name, project, cwd):
-        super(WorkingDirCommandBuilder, self).__init__(command_name, project)
+    def __init__(self, command_name, project, cwd, reactor):
+        super(WorkingDirCommandBuilder, self).__init__(command_name, project, reactor)
         self.cwd = cwd
 
     def run(self, outfile_name):
         error_file_name = "{0}.err".format(outfile_name)
-        return_code = execute_command(self.parts, outfile_name, cwd=self.cwd)
+        return_code = self._env.execute_command(self.parts, outfile_name, cwd=self.cwd)
         error_file_lines = read_file(error_file_name)
         outfile_lines = read_file(outfile_name)
 
@@ -86,18 +86,18 @@ class WorkingDirCommandBuilder(ExternalCommandBuilder):
 @task(description="Run integration tests using a RAML spec."
                   f"{RAML_TEST_DIR} - directory containing RAML specifications ({DEFAULT_RAML_TEST_DIR})"
                   f"{RAML_MODULE_GLOB} - search pattern for RAML tests ({DEFAULT_RAML_GLOB})")
-def verify_raml(project: Project, logger: Logger):
+def verify_raml(project: Project, logger: Logger, reactor: Reactor):
     # Set the default
     project.set_property_if_unset(RAML_TEST_DIR, DEFAULT_RAML_TEST_DIR)
     # Expand the directory to get full path
-    test_dir = project.expand_path("$raml_test_dir")
+    test_dir = project.expand_path(f"${RAML_TEST_DIR}")
     # Run the tests in the directory
-    _run_raml_tests_in_dir(test_dir, logger, project)
+    _run_raml_tests_in_dir(test_dir, logger, project,reactor)
 
 
-def _run_raml_tests_in_dir(test_dir: str, logger: Logger, project: Project):
+def _run_raml_tests_in_dir(test_dir: str, logger: Logger, project: Project, reactor: Reactor):
     # Install our RAML testing tool
-    install_abao(logger, project)
+    install_abao(logger, project, reactor)
     # Get our testing pattern
     search_pattern = project.get_property(RAML_MODULE_GLOB, DEFAULT_RAML_GLOB)
     logger.info(f"Searching for RAML specs {search_pattern}: {test_dir}")
@@ -106,22 +106,22 @@ def _run_raml_tests_in_dir(test_dir: str, logger: Logger, project: Project):
     # Incrementally run each spec
     status = True
     for file in raml_files:
-        run_passed = do_raml_test(file, project, logger)
+        run_passed = do_raml_test(file, project, logger,reactor=reactor)
         if not run_passed:
             status = False
     if not status:
         raise BuildFailedException('Failed to pass all RAML integration tests')
 
 
-def do_raml_test(file: str, project: Project, logger: Logger):
+def do_raml_test(file: str, project: Project, logger: Logger, reactor:Reactor):
     basename = os.path.basename(file)
     logger.info("Running raml spec: {}".format(basename))
-    command = ExternalCommandBuilder('./node_modules/abao/bin/abao', project)
+    command = ExternalCommandBuilder('./node_modules/abao/bin/abao', project,reactor=reactor)
     command.use_argument('{}').formatted_with(file)
     command.use_argument('--timeout')
     command.use_argument('100000')
     command.use_argument('--server')
-    command.use_argument('{}').formatted_with_property('integration_target')
+    command.use_argument('{}').formatted_with_property(INTEGRATION_TARGET_URL)
     command.use_argument('--reporter')
     command.use_argument('xunit')
     # Determine if there is a hookfile for the spec
