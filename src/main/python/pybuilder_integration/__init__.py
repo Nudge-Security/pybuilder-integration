@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from pybuilder.core import depends, task, Project, Logger
 from pybuilder.errors import BuildFailedException
@@ -12,6 +13,13 @@ INTEGRATION_TARGET_URL = "integration_target_url"
 RAML_TEST_DIR = "raml_test_dir"
 DEFAULT_RAML_GLOB = "*.raml"
 DEFAULT_RAML_TEST_DIR = "src/integrationtest/raml"
+
+
+@task(description="Package integration artifacts and push to common storage.")
+@depends("verify")
+def integration_artifact_push(project, logger):
+
+    pass
 
 
 @task(description="Run integration tests")
@@ -32,6 +40,11 @@ def verify_protractor(project: Project, logger: Logger, reactor: Reactor):
     work_dir = project.expand_path(f"${PROTRACTOR_TEST_DIR}")
     _run_protractor_tests_in_directory(target_url=target_url, work_dir=work_dir, logger=logger, project=project,
                                        reactor=reactor)
+    # zip up the test and add them to the integration test dist directory
+    dist_directory = prepare_dist_directory(project)
+    shutil.make_archive(base_name=f"{dist_directory}/protractor-{project.name}-{project.version}",
+                        format="zip",
+                        root_dir=work_dir)
 
 
 def _run_protractor_tests_in_directory(target_url, work_dir, logger, project, reactor: Reactor):
@@ -92,7 +105,7 @@ def verify_raml(project: Project, logger: Logger, reactor: Reactor):
     # Expand the directory to get full path
     test_dir = project.expand_path(f"${RAML_TEST_DIR}")
     # Run the tests in the directory
-    _run_raml_tests_in_dir(test_dir, logger, project,reactor)
+    _run_raml_tests_in_dir(test_dir, logger, project, reactor)
 
 
 def _run_raml_tests_in_dir(test_dir: str, logger: Logger, project: Project, reactor: Reactor):
@@ -106,17 +119,17 @@ def _run_raml_tests_in_dir(test_dir: str, logger: Logger, project: Project, reac
     # Incrementally run each spec
     status = True
     for file in raml_files:
-        run_passed = do_raml_test(file, project, logger,reactor=reactor)
+        run_passed = do_raml_test(file, project, logger, reactor=reactor)
         if not run_passed:
             status = False
     if not status:
         raise BuildFailedException('Failed to pass all RAML integration tests')
 
 
-def do_raml_test(file: str, project: Project, logger: Logger, reactor:Reactor):
+def do_raml_test(file: str, project: Project, logger: Logger, reactor: Reactor):
     basename = os.path.basename(file)
     logger.info("Running raml spec: {}".format(basename))
-    command = ExternalCommandBuilder('./node_modules/abao/bin/abao', project,reactor=reactor)
+    command = ExternalCommandBuilder('./node_modules/abao/bin/abao', project, reactor=reactor)
     command.use_argument('{}').formatted_with(file)
     command.use_argument('--timeout')
     command.use_argument('100000')
@@ -144,6 +157,10 @@ def prepare_reports_directory(project):
 
 def prepare_logs_directory(project):
     return prepare_directory("$dir_logs", project)
+
+
+def prepare_dist_directory(project):
+    return prepare_directory("$dir_dist", project)
 
 
 def prepare_directory(dir_variable, project):

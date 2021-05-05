@@ -8,6 +8,7 @@ from pybuilder.cli import StdOutLogger
 from pybuilder.core import Project, Logger
 from pybuilder.execution import ExecutionManager
 from pybuilder.plugins import core_plugin
+from pybuilder.plugins.python.core_plugin import init_python_directories
 from pybuilder.reactor import Reactor
 
 import pybuilder_integration
@@ -41,6 +42,7 @@ class PybuilderIntegrationTestCase(unittest.TestCase):
         self.execution_manager = ExecutionManager(self.logger)
         self.reactor = Reactor(self.logger, self.execution_manager)
         core_plugin.init(self.project)
+        init_python_directories(self.project)
 
     def tearDown(self):
         shutil.rmtree(self.tmpDir)
@@ -52,10 +54,15 @@ class PybuilderIntegrationTestCase(unittest.TestCase):
         pybuilder_integration.prepare_reports_directory(project=self.project)
         reports_dir = self.project.expand_path("$dir_reports")
         self.assertTrue(os.path.exists(f"{reports_dir}/integration"), "Failed to create reports directory")
+        pybuilder_integration.prepare_dist_directory(project=self.project)
+        dist_dir = self.project.expand_path("$dir_dist")
+        self.assertTrue(os.path.exists(f"{dist_dir}/integration"), "Failed to create dist directory")
 
     def test_protractor_run(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
         target_url = "foo"
+        file_name="test.json"
+        test_file = self._configure_mock_test_files(file_name, "protractor")
         self.project.set_property(pybuilder_integration.INTEGRATION_TARGET_URL, target_url)
         pybuilder_integration.verify_protractor(project=self.project,
                                                 logger=mock_logger,
@@ -64,19 +71,16 @@ class PybuilderIntegrationTestCase(unittest.TestCase):
                                            f"--baseUrl={target_url}"],
                                           f"{self.tmpDir}/target/logs/integration/protractor_run",
                                           cwd=f"{self.tmpDir}/src/integrationtest/protractor")
+        zip_location = f"{self.tmpDir}/target/dist/{self.project.name}-{self.project.version}/integration/protractor-{self.project.name}-{self.project.version}.zip"
+        self.assertTrue(os.path.exists(zip_location),"Did not find bundled artifacts")
 
     def test_raml_run(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
         target_url = "foo"
         # Configure default properties
         self.project.set_property(pybuilder_integration.INTEGRATION_TARGET_URL, target_url)
-        # Configure mock RAML tests
-        default_path = "src/integrationtest/raml"
-        os.makedirs(f"{self.tmpDir}/{default_path}")
-        test_file = f"{self.tmpDir}/{default_path}/test.raml"
-        with open(test_file, "w") as fp:
-            # touch file
-            pass
+        file_name="test.raml"
+        test_file = self._configure_mock_test_files(file_name, "raml")
         pybuilder_integration.verify_raml(project=self.project, logger=mock_logger, reactor=reactor)
         verify_execute.assert_called_with(["./node_modules/abao/bin/abao",
                                            f"{test_file}",
@@ -86,7 +90,17 @@ class PybuilderIntegrationTestCase(unittest.TestCase):
                                            f"{target_url}",
                                            "--reporter",
                                            "xunit"],
-                                          f"{self.tmpDir}/target/reports/integration/INTEGRATIONTEST-RAML-test.raml.xml")
+                                          f"{self.tmpDir}/target/reports/integration/INTEGRATIONTEST-RAML-{file_name}.xml")
+
+    def _configure_mock_test_files(self, file_name, tool):
+        # Configure mock test files
+        default_path = f"src/integrationtest/{tool}"
+        os.makedirs(f"{self.tmpDir}/{default_path}")
+        test_file = f"{self.tmpDir}/{default_path}/{file_name}"
+        with open(test_file, "w") as fp:
+            # touch file
+            pass
+        return test_file
 
     def test_npm_install(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
