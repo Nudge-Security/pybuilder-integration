@@ -1,0 +1,13 @@
+INTEGRATION_ARTIFACT_BUCKET = "integration_artifact_s3_bucket"
+ENVIRONMENT = "environment"
+ARTIFACT_MANAGER = "integration_artifact_manager"
+RAML_MODULE_GLOB = 'raml_module_glob'
+PROTRACTOR_TEST_DIR = "protractor_test_dir"
+INTEGRATION_TARGET_URL = "integration_target_url"
+RAML_TEST_DIR = "raml_test_dir"
+DEFAULT_RAML_GLOB = "*.raml"
+DEFAULT_RAML_TEST_DIR = "src/integrationtest/raml"
+PROMOTE_ARTIFACT = "promote"
+ROLE = "role"
+APPLICATION = "application"
+APPLICATION_GROUP = "application_group"
