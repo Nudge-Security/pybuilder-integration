@@ -21,14 +21,6 @@ def integration_artifact_push(project: Project, logger: Logger, reactor: Reactor
     manager.upload(dist_directory=dist_directory, project=project, logger=logger, reactor=reactor)
 
 
-@task(description="Runs integration tests against a CI/Prod environment."
-                  "1. Run current build integration tests found in ${dir_dist}"
-                  f"2. Run integration tests found in 'LATEST-{ENVIRONMENT}' managed by ${ARTIFACT_MANAGER}"
-                  f"3. Promote current build integration tests to 'LATEST-{ENVIRONMENT}' (disable with ${PROMOTE_ARTIFACT})"
-                  f"${INTEGRATION_TARGET_URL} - (required) Full URL target for tests"
-                  f"${ENVIRONMENT} - (required) Environment that is being tested (ci/prod)"
-                  f"${PROMOTE_ARTIFACT} - Promote integration tests to LATEST-${ENVIRONMENT} (default TRUE)"
-      )
 def verify_environment(project: Project, logger: Logger, reactor: Reactor):
     dist_directory = get_working_distribution_directory(project)
     logger.info(f"Preparing to run tests found in {dist_directory}")
@@ -56,18 +48,6 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor):
                                project=project,
                                reactor=reactor)
 
-
-@task(description="Run integration tests")
-@depends("verify_raml", "verify_protractor")
-def verify(project, logger):
-    # The @depends makes pyb run the other two tasks first so this is not really a noop
-    pass
-
-
-@task(description="Run integration tests using a protractor spec. Requires NPM installed."
-                  f"{INTEGRATION_TARGET_URL} - (required) Full URL target for protractor tests"
-                  f"{PROTRACTOR_TEST_DIR} - directory for test specification (src/integrationtest/protractor)"
-      )
 def verify_protractor(project: Project, logger: Logger, reactor: Reactor):
     project.set_property_if_unset(PROTRACTOR_TEST_DIR, "src/integrationtest/protractor")
     # Get directories with test and protractor executable
@@ -88,9 +68,6 @@ def _run_protractor_tests_in_directory(work_dir, logger, project, reactor: React
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False)
 
 
-@task(description="Run integration tests using a RAML spec."
-                  f"{RAML_TEST_DIR} - directory containing RAML specifications ({DEFAULT_RAML_TEST_DIR})"
-                  f"{RAML_MODULE_GLOB} - search pattern for RAML tests ({DEFAULT_RAML_GLOB})")
 def verify_raml(project: Project, logger: Logger, reactor: Reactor):
     # Set the default
     project.set_property_if_unset(RAML_TEST_DIR, DEFAULT_RAML_TEST_DIR)
