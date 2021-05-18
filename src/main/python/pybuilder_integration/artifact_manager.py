@@ -25,13 +25,14 @@ class ArtifactManager:
         pass
 
 
-
 class S3ArtifactManager(ArtifactManager):
 
     def __init__(self):
         super().__init__("AWS S3 Artifact Manager", "S3")
 
     def upload(self, dist_directory: str, project: Project, logger: Logger, reactor: Reactor):
+        # First make sure bucket exists
+        self.create_bucket(logger, project, reactor)
         relative_path = get_latest_artifact_destination(logger, project)
         self._s3_transfer(dist_directory, relative_path, project, reactor, logger)
         relative_path = get_versioned_artifact_destination(logger, project)
@@ -50,19 +51,16 @@ class S3ArtifactManager(ArtifactManager):
     @staticmethod
     def _s3_transfer(source, destination, project, reactor, logger):
         logger.info(f"Proceeding to upload {source} to {destination}")
-        reactor.pybuilder_venv.verify_can_execute(command_and_arguments=["aws", "--version"],
-                                                  prerequisite="aws cli",
-                                                  caller="integration_tests")
-        args = [
-            's3',
-            'cp',
-            source,
-            destination,
-            "--recursive"
-        ]
+        S3ArtifactManager.verify_aws_cli(reactor)
         #  aws s3 cp myDir s3://mybucket/ --recursive
         exec_utility.exec_command(command_name='aws',
-                                  args=args,
+                                  args=[
+                                      's3',
+                                      'cp',
+                                      source,
+                                      destination,
+                                      "--recursive"
+                                  ],
                                   failure_message=f"Failed to transfer integration artifacts to {destination}",
                                   log_file_name='s3-artifact-transfer',
                                   project=project,
@@ -70,12 +68,54 @@ class S3ArtifactManager(ArtifactManager):
                                   logger=logger,
                                   report=False)
 
+    @staticmethod
+    def verify_aws_cli(reactor):
+        reactor.pybuilder_venv.verify_can_execute(command_and_arguments=["aws", "--version"],
+                                                  prerequisite="aws cli",
+                                                  caller="integration_tests")
+
+    def create_bucket(self, logger, project, reactor):
+        app_group, app_name, bucket, environment, role = get_project_metadata(logger, project)
+        S3ArtifactManager.verify_aws_cli(reactor)
+        res = exec_utility.exec_command(command_name='aws',
+                                  args=[
+                                      's3api',
+                                      'head-bucket',
+                                      '--bucket',
+                                      bucket
+                                  ],
+                                  failure_message=f"Failed to find bucket",
+                                  log_file_name='s3-head-bucket',
+                                  project=project,
+                                  reactor=reactor,
+                                  logger=logger,
+                                  raise_exception=False,
+                                  report=False)
+        if res:
+            return
+        exec_utility.exec_command(command_name='aws',
+                                  args=[
+                                      's3api',
+                                      'create-bucket',
+                                      '--acl',
+                                      'private',
+                                      '--bucket',
+                                      bucket
+                                  ],
+                                  failure_message=f"Failed to create bucket",
+                                  log_file_name='s3-create-bucket',
+                                  project=project,
+                                  reactor=reactor,
+                                  logger=logger,
+                                  report=False)
+
+
+
+
 
 artifact_managers: Dict[str, S3ArtifactManager] = {}
 manager = S3ArtifactManager()
 artifact_managers[manager.identifier] = manager
-
-
 
 
 def get_artifact_manager(project: Project) -> ArtifactManager:
@@ -124,9 +164,11 @@ def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Lo
     for file in os.listdir(dir_with_zips):
         # expect {tool}-{self.project.name}.zip
         if os.path.basename(file).find("raml") >= 0:
-            shutil.unpack_archive(filename=os.path.join(dir_with_zips,file), extract_dir=f"{destination}/raml", format="zip")
+            shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/raml",
+                                  format="zip")
         elif os.path.basename(file).find("protractor") >= 0:
-            shutil.unpack_archive(filename=os.path.join(dir_with_zips,file), extract_dir=f"{destination}/protractor", format="zip")
+            shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/protractor",
+                                  format="zip")
         else:
             logger.warn(f"Unexpected file name in downloaded artifacts {file}")
     return destination
@@ -135,7 +177,7 @@ def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Lo
 def get_project_metadata(logger: Logger, project: Project):
     app_group, app_name, role = extract_application_role(logger, project)
     environment = project.get_mandatory_property(ENVIRONMENT)
-    bucket = project.get_property(INTEGRATION_ARTIFACT_BUCKET,f"integration-artifacts-{app_group}-{app_name}")
+    bucket = project.get_property(INTEGRATION_ARTIFACT_BUCKET, f"integration-artifacts-{app_group}-{app_name}")
     return app_group, app_name, bucket, environment, role
 
 
