@@ -76,9 +76,6 @@ manager = S3ArtifactManager()
 artifact_managers[manager.identifier] = manager
 
 
-def get_latest_artifact_destination(logger, project):
-    app_group, app_name, bucket, environment, role = get_project_metadata(logger, project)
-    return f"s3://{bucket}/{app_group}-{app_name}/LATEST-{environment}/"
 
 
 def get_artifact_manager(project: Project) -> ArtifactManager:
@@ -136,12 +133,17 @@ def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Lo
 
 
 def get_project_metadata(logger: Logger, project: Project):
-    bucket = project.get_property(INTEGRATION_ARTIFACT_BUCKET)
-    environment = project.get_property(ENVIRONMENT)
     app_group, app_name, role = extract_application_role(logger, project)
+    environment = project.get_mandatory_property(ENVIRONMENT)
+    bucket = project.get_property(INTEGRATION_ARTIFACT_BUCKET,f"integration-artifacts-{app_group}-{app_name}")
     return app_group, app_name, bucket, environment, role
 
 
 def get_versioned_artifact_destination(logger, project):
     app_group, app_name, bucket, environment, role = get_project_metadata(logger, project)
-    return f"s3://{bucket}/{app_group}-{app_name}/{role}/{project.version}/"
+    return f"s3://{bucket}/{role}/{project.version}/"
+
+
+def get_latest_artifact_destination(logger, project):
+    app_group, app_name, bucket, environment, role = get_project_metadata(logger, project)
+    return f"s3://{bucket}/LATEST-{environment}/"
