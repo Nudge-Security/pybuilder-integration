@@ -32,6 +32,6 @@ def set_properties(project):
     project.set_property("run_unit_tests_propagate_stdout",True)
     project.set_property("run_unit_tests_propagate_stderr",True)
     project.set_property("coverage_break_build", True)
-    project.set_property("coverage_branch_threshold_warn", 50)
-    project.set_property("coverage_branch_partial_threshold_warn", 50)
+    project.set_property("coverage_branch_threshold_warn", 70)
+    project.set_property("coverage_branch_partial_threshold_warn", 70)
     project.set_property("distutils_upload_repository","pypi")
