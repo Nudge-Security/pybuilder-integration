@@ -39,6 +39,8 @@ class S3ArtifactManager(ArtifactManager):
         self._s3_transfer(dist_directory, relative_path, project, reactor, logger)
 
     def download_artifacts(self, project: Project, logger: Logger, reactor: Reactor):
+        # First make sure bucket exists
+        self.create_bucket(logger, project, reactor)
         s3_location = get_latest_artifact_destination(logger, project)
         zipped_directory = get_latest_zipped_distribution_directory(project)
         self._s3_transfer(source=s3_location,
@@ -50,7 +52,7 @@ class S3ArtifactManager(ArtifactManager):
 
     @staticmethod
     def _s3_transfer(source, destination, project, reactor, logger):
-        logger.info(f"Proceeding to upload {source} to {destination}")
+        logger.info(f"Proceeding to transfer {source} to {destination}")
         S3ArtifactManager.verify_aws_cli(reactor)
         #  aws s3 cp myDir s3://mybucket/ --recursive
         exec_utility.exec_command(command_name='aws',
