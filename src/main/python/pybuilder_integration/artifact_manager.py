@@ -31,6 +31,8 @@ class S3ArtifactManager(ArtifactManager):
         super().__init__("AWS S3 Artifact Manager", "S3")
 
     def upload(self, dist_directory: str, project: Project, logger: Logger, reactor: Reactor):
+        if project.get_property("abort_upload","false") is not "false":
+            return
         # First make sure bucket exists
         self.create_bucket(logger, project, reactor)
         relative_path = get_latest_artifact_destination(logger, project)
@@ -39,8 +41,9 @@ class S3ArtifactManager(ArtifactManager):
         self._s3_transfer(dist_directory, relative_path, project, reactor, logger)
 
     def download_artifacts(self, project: Project, logger: Logger, reactor: Reactor):
-        # First make sure bucket exists
-        self.create_bucket(logger, project, reactor)
+        # this is a noop if there is no bucket
+        if not self.does_bucket_exist(logger, project, reactor):
+            return
         s3_location = get_latest_artifact_destination(logger, project)
         zipped_directory = get_latest_zipped_distribution_directory(project)
         self._s3_transfer(source=s3_location,
@@ -79,20 +82,7 @@ class S3ArtifactManager(ArtifactManager):
     def create_bucket(self, logger, project, reactor):
         app_group, app_name, bucket, environment, role = get_project_metadata(logger, project)
         S3ArtifactManager.verify_aws_cli(reactor)
-        res = exec_utility.exec_command(command_name='aws',
-                                  args=[
-                                      's3api',
-                                      'head-bucket',
-                                      '--bucket',
-                                      bucket
-                                  ],
-                                  failure_message=f"Failed to find bucket",
-                                  log_file_name='s3-head-bucket',
-                                  project=project,
-                                  reactor=reactor,
-                                  logger=logger,
-                                  raise_exception=False,
-                                  report=False)
+        res = self.does_bucket_exist(logger, project, reactor)
         if res:
             return
         exec_utility.exec_command(command_name='aws',
@@ -111,8 +101,22 @@ class S3ArtifactManager(ArtifactManager):
                                   logger=logger,
                                   report=False)
 
-
-
+    def does_bucket_exist(self, logger, project, reactor):
+        app_group, app_name, bucket, environment, role = get_project_metadata(logger, project)
+        return exec_utility.exec_command(command_name='aws',
+                                         args=[
+                                             's3api',
+                                             'head-bucket',
+                                             '--bucket',
+                                             bucket
+                                         ],
+                                         failure_message=f"Failed to find bucket",
+                                         log_file_name='s3-head-bucket',
+                                         project=project,
+                                         reactor=reactor,
+                                         logger=logger,
+                                         raise_exception=False,
+                                         report=False)
 
 
 artifact_managers: Dict[str, S3ArtifactManager] = {}
