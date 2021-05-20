@@ -139,10 +139,13 @@ def extract_application_role(logger, project):
         project_name = project.name
         if project_name.find("-") >= 0:
             split = project_name.split("-")
-            if len(split) == 3:
+            if len(split) >= 3:
                 app_group = split[0]
                 app_name = split[1]
-                role = split[2]
+                if len(split) == 3:
+                    role = split[2]
+                else:
+                    role = "-".join(split[2:])
             else:
                 logger.info(
                     f"Unexpected naming format expected <Application Group>-<Application>-<Role> got {project_name}")

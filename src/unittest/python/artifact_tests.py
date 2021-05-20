@@ -25,6 +25,15 @@ class ArtifactManagerTestCase(ParentTestCase):
         self.project.set_property(properties.INTEGRATION_ARTIFACT_BUCKET, expected_bucket)
         self.validate_metadata_processing(expected_app_group, expected_app_name, expected_bucket, expected_environment,
                                           expected_role, mock_logger)
+        # validate a well formed name in expected format
+        self.project.name = f"{expected_app_group}-{expected_app_name}-{expected_role}-blarney"
+        expected_role = 'bananas-blarney'
+        expected_environment = 'ci'
+        expected_bucket = 'foo'
+        self.project.set_property(properties.ENVIRONMENT, expected_environment)
+        self.project.set_property(properties.INTEGRATION_ARTIFACT_BUCKET, expected_bucket)
+        self.validate_metadata_processing(expected_app_group, expected_app_name, expected_bucket, expected_environment,
+                                          expected_role, mock_logger)
         # validate a name in unexpected format
         self.project.name = f"{expected_app_name}"
         self.validate_metadata_processing('Unknown', expected_app_name, expected_bucket, expected_environment,
