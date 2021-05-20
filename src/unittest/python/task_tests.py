@@ -72,6 +72,7 @@ class TaskTestCase(ParentTestCase):
         target_url = "foo"
         # Configure default properties
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
+        self.project.set_property(pybuilder_integration.properties.ENVIRONMENT, "dev")
         distribution_directory = directory_utility.get_working_distribution_directory(self.project)
         protractor_test_dir, raml_test_file_path = self._configure_mock_tests(distribution_directory)
         pybuilder_integration.tasks.verify_environment(project=self.project, logger=mock_logger, reactor=reactor)

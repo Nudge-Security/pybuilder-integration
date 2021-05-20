@@ -62,6 +62,7 @@ def _run_protractor_tests_in_directory(work_dir, logger, project, reactor: React
     # Validate NPM install and Install protractor
     install_protractor(project=project, logger=logger, reactor=reactor)
     executable = project.expand_path("./node_modules/protractor/bin/protractor")
+    logger.info(f"Found {len(os.listdir(work_dir))} files in protractor test directory")
     # Run the actual tests against the baseURL provided by ${integration_target}
     exec_utility.exec_command(command_name=executable, args=[f"--baseUrl={target_url}"],
                               failure_message="Failed to execute protractor tests", log_file_name='protractor_run',
@@ -84,6 +85,7 @@ def _run_raml_tests_in_dir(test_dir: str, logger: Logger, project: Project, reac
     # Get our testing pattern
     search_pattern = project.get_property(RAML_MODULE_GLOB, DEFAULT_RAML_GLOB)
     logger.info(f"Searching for RAML specs {search_pattern}: {test_dir}")
+    logger.info(f"Found {len(os.listdir(test_dir))} files in RAML test directory")
     # Find all teh files that match
     raml_files = discover_files_matching(test_dir, search_pattern)
     # Incrementally run each spec
