@@ -78,6 +78,20 @@ class ArtifactManagerTestCase(ParentTestCase):
 
         self._assert_s3_transfer(dist_directory, relative_path, verify_execute)
 
+
+    def test_s3_artfact_upload_abort(self):
+        mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
+        artifact_manager = S3ArtifactManager()
+        relative_path = "foo"
+        self.project.set_property("abort_upload","true")
+        try:
+            verify_mock.reset_mock()
+            artifact_manager.upload(dist_directory=relative_path, project=self.project,
+                                          reactor=reactor, logger=mock_logger)
+            verify_mock.assert_not_called()
+        finally:
+            self.project.set_property("abort_upload","false")
+
     def test_artifact_manager(self):
         manager = get_artifact_manager(self.project)
         self.assertIsNotNone(manager, "Failed to find manager")
