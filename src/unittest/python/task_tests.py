@@ -18,7 +18,7 @@ class TaskTestCase(ParentTestCase):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
         target_url = "foo"
         file_name = "test.json"
-        test_file = self._configure_mock_test_files(file_name, "protractor")
+        self._configure_mock_test_files(file_name, "protractor")
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
         pybuilder_integration.tasks.verify_protractor(project=self.project,
                                                       logger=mock_logger,
@@ -46,7 +46,7 @@ class TaskTestCase(ParentTestCase):
         # Configure default properties
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
         file_name = "test.tavern.yaml"
-        test_file = self._configure_mock_test_files(file_name, "tavern")
+        self._configure_mock_test_files(file_name, "tavern")
         pybuilder_integration.tasks.verify_tavern(project=self.project, logger=mock_logger, reactor=reactor)
         self._assert_called_tavern_execution(f"{self.tmpDir}/src/integrationtest/tavern", target_url, verify_execute)
         self._validate_zip_file(file_name, "tavern")

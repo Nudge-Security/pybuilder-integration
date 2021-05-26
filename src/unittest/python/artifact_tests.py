@@ -121,6 +121,14 @@ class ArtifactManagerTestCase(ParentTestCase):
             else:
                 self.fail(f"Found unexpected file {files}")
 
+    def test_artifact_repackaging(self):
+        mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
+        directory = f"{self.tmpDir}/artifact_packaging_test"
+        protractor_test_file_path, tavern_test_file_path = self._configure_mock_tests(directory)
+        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern")
+        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern")
+        # we didn't fail we are good!!!
+
 
 
 

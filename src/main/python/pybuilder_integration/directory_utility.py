@@ -44,7 +44,7 @@ def get_latest_zipped_distribution_directory(project):
 def package_artifacts(project, test_dir, tool):
     # Make a copy for easy access in environment validation
     working_dir = get_working_distribution_directory(project)
-    shutil.copytree(test_dir, f"{working_dir}/{tool}")
+    shutil.copytree(test_dir, f"{working_dir}/{tool}",dirs_exist_ok=True)
     # package a copy for distribution
     # zip up the test and add them to the integration test dist directory
     dist_directory = prepare_dist_directory(project)
