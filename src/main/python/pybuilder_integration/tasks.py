@@ -1,16 +1,20 @@
 import os
 
-from pybuilder.core import Project, Logger, task, depends
-from pybuilder.errors import BuildFailedException
+from pybuilder.core import Project, Logger, init
 from pybuilder.reactor import Reactor
-from pybuilder.utils import discover_files_matching
 
 from pybuilder_integration import exec_utility
 from pybuilder_integration.artifact_manager import get_artifact_manager
 from pybuilder_integration.directory_utility import prepare_dist_directory, get_working_distribution_directory, \
-    package_artifacts
+    package_artifacts, prepare_reports_directory
 from pybuilder_integration.properties import *
-from pybuilder_integration.tool_utility import install_protractor, install_abao
+from pybuilder_integration.tool_utility import install_protractor
+
+
+@init
+def init_test_source_directory(project):
+    project.plugin_depends_on("pytest")
+    project.plugin_depends_on("tavern")
 
 
 def integration_artifact_push(project: Project, logger: Logger, reactor: Reactor):
@@ -40,13 +44,14 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor):
                                            logger=logger,
                                            project=project,
                                            reactor=reactor)
-    raml_test_path = f"{dist_directory}/raml"
-    if os.path.exists(raml_test_path):
-        logger.info(f"Found raml tests - starting run")
-        _run_raml_tests_in_dir(test_dir=raml_test_path,
-                               logger=logger,
-                               project=project,
-                               reactor=reactor)
+    tavern_test_path = f"{dist_directory}/tavern"
+    if os.path.exists(tavern_test_path):
+        logger.info(f"Found tavern tests - starting run")
+        _run_tavern_tests_in_dir(test_dir=tavern_test_path,
+                                 logger=logger,
+                                 project=project,
+                                 reactor=reactor)
+
 
 def verify_protractor(project: Project, logger: Logger, reactor: Reactor):
     project.set_property_if_unset(PROTRACTOR_TEST_DIR, "src/integrationtest/protractor")
@@ -69,57 +74,35 @@ def _run_protractor_tests_in_directory(work_dir, logger, project, reactor: React
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False)
 
 
-def verify_raml(project: Project, logger: Logger, reactor: Reactor):
+def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
     # Set the default
-    project.set_property_if_unset(RAML_TEST_DIR, DEFAULT_RAML_TEST_DIR)
+    project.set_property_if_unset(TAVERN_TEST_DIR, DEFAULT_TAVERN_TEST_DIR)
     # Expand the directory to get full path
-    test_dir = project.expand_path(f"${RAML_TEST_DIR}")
+    test_dir = project.expand_path(f"${TAVERN_TEST_DIR}")
     # Run the tests in the directory
-    _run_raml_tests_in_dir(test_dir, logger, project, reactor)
-    package_artifacts(project, test_dir, "raml")
+    _run_tavern_tests_in_dir(test_dir, logger, project, reactor)
+    package_artifacts(project, test_dir, "tavern")
 
 
-def _run_raml_tests_in_dir(test_dir: str, logger: Logger, project: Project, reactor: Reactor):
-    # Install our RAML testing tool
-    install_abao(logger, project, reactor)
-    # Get our testing pattern
-    search_pattern = project.get_property(RAML_MODULE_GLOB, DEFAULT_RAML_GLOB)
-    logger.info(f"Searching for RAML specs {search_pattern}: {test_dir}")
-    logger.info(f"Found {len(os.listdir(test_dir))} files in RAML test directory")
-    # Find all teh files that match
-    raml_files = discover_files_matching(test_dir, search_pattern)
-    # Incrementally run each spec
-    status = True
-    for file in raml_files:
-        run_passed = do_raml_test(file, project, logger, reactor=reactor)
-        if not run_passed:
-            status = False
-    if not status:
-        raise BuildFailedException('Failed to pass all RAML integration tests')
-
-
-def do_raml_test(file: str, project: Project, logger: Logger, reactor: Reactor):
-    basename = os.path.basename(file)
-    logger.info("Running raml spec: {}".format(basename))
+def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, reactor: Reactor):
+    logger.info("Running tavern tests: {}".format(test_dir))
+    # todo is this enough?
+    output_file, run_name = get_test_report_file(project, test_dir)
     args = [
-        file,
-        '--timeout',
-        '100000',
-        '--server',
-        project.get_property(INTEGRATION_TARGET_URL),
-        "--reporter",
-        "xunit"
+        "--junit-xml",
+        f"{output_file}"
     ]
-    # Determine if there is a hookfile for the spec
-    hookfile = file.replace(".raml", "-hooks.js")
-    if os.path.exists(hookfile):
-        # and use it if it exists
-        args.append(f"--hookfiles={hookfile}")
-    return exec_utility.exec_command(command_name='./node_modules/abao/bin/abao',
-                                     args=args,
-                                     failure_message=f'Failed to execute RAML spec: {basename}',
-                                     log_file_name=f"INTEGRATIONTEST-RAML-{basename}.xml",
-                                     project=project,
-                                     reactor=reactor,
-                                     logger=logger,
-                                     raise_exception=False)
+    exec_utility.exec_command(command_name=f"TARGET={project.get_property(INTEGRATION_TARGET_URL)} pytest",
+                              args=args,
+                              failure_message=f'Failed to execute tavern',
+                              log_file_name=f"{run_name}-tavern.txt",
+                              project=project,
+                              reactor=reactor,
+                              logger=logger,
+                              working_dir=test_dir)
+
+
+def get_test_report_file(project, test_dir):
+    run_name = os.path.basename(os.path.realpath(os.path.join(test_dir, os.pardir)))
+    output_file = os.path.join(prepare_reports_directory(project), f"tavern-{run_name}.out.xml")
+    return output_file, run_name

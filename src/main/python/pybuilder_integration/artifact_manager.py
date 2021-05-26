@@ -31,7 +31,7 @@ class S3ArtifactManager(ArtifactManager):
         super().__init__("AWS S3 Artifact Manager", "S3")
 
     def upload(self, dist_directory: str, project: Project, logger: Logger, reactor: Reactor):
-        if project.get_property("abort_upload","false") is not "false":
+        if project.get_property("abort_upload","false") != "false":
             return
         # First make sure bucket exists
         self.create_bucket(logger, project, reactor)
@@ -172,8 +172,8 @@ def extract_application_role(logger, project):
 def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Logger) -> str:
     for file in os.listdir(dir_with_zips):
         # expect {tool}-{self.project.name}.zip
-        if os.path.basename(file).find("raml") >= 0:
-            shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/raml",
+        if os.path.basename(file).find("tavern") >= 0:
+            shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/tavern",
                                   format="zip")
         elif os.path.basename(file).find("protractor") >= 0:
             shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/protractor",

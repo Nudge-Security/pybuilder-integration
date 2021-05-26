@@ -76,9 +76,9 @@ class ParentTestCase(TestCase):
         return self._configure_mock_tests_dir(f"{self.tmpDir}/src/integrationtest/{tool}", file_name)
 
     def _configure_mock_tests(self, distribution_directory):
-        raml_test_file_name = "test.raml"
+        tavern_test_file_name = "test.tavern.yaml"
         protractor_test_file_name = "test.json"
-        raml_test_file_path = self._configure_mock_tests_dir(f"{distribution_directory}/raml", raml_test_file_name)
+        tavern_test_file_path = self._configure_mock_tests_dir(f"{distribution_directory}/tavern", tavern_test_file_name)
         protractor_test_file_path = self._configure_mock_tests_dir(f"{distribution_directory}/protractor",
                                                                    protractor_test_file_name)
-        return protractor_test_file_path, raml_test_file_path
+        return protractor_test_file_path, tavern_test_file_path

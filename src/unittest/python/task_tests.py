@@ -23,14 +23,9 @@ class TaskTestCase(ParentTestCase):
         pybuilder_integration.tasks.verify_protractor(project=self.project,
                                                       logger=mock_logger,
                                                       reactor=reactor)
-        self._assert_protractor_run(target_url, verify_execute, f"{self.tmpDir}/src/integrationtest/protractor")
+        self._assert_protractor_run(f"{self.tmpDir}/src/integrationtest/protractor", target_url, verify_execute)
         self._validate_zip_file(file_name, "protractor")
 
-    def _assert_protractor_run(self, target_url, verify_execute, test_directory):
-        verify_execute.assert_any_call([f"{self.tmpDir}/node_modules/protractor/bin/protractor",
-                                           f"--baseUrl={target_url}"],
-                                          f"{self.tmpDir}/target/logs/integration/protractor_run",
-                                          cwd=test_directory)
 
     def _get_integration_distribution_zip(self, tool):
         return self.project.expand_path(
@@ -45,27 +40,34 @@ class TaskTestCase(ParentTestCase):
             for elem in listOfiles:
                 self.assertEqual(file_name, elem, "Did not find expected entry")
 
-    def test_verify_raml(self):
+    def test_verify_tavern(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
         target_url = "foo"
         # Configure default properties
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
-        file_name = "test.raml"
-        test_file = self._configure_mock_test_files(file_name, "raml")
-        pybuilder_integration.tasks.verify_raml(project=self.project, logger=mock_logger, reactor=reactor)
-        self._assert_called_raml_execution(test_file, target_url, verify_execute)
-        self._validate_zip_file(file_name, "raml")
+        file_name = "test.tavern.yaml"
+        test_file = self._configure_mock_test_files(file_name, "tavern")
+        pybuilder_integration.tasks.verify_tavern(project=self.project, logger=mock_logger, reactor=reactor)
+        self._assert_called_tavern_execution(f"{self.tmpDir}/src/integrationtest/tavern", target_url, verify_execute)
+        self._validate_zip_file(file_name, "tavern")
 
-    def _assert_called_raml_execution(self, test_file_path, target_url, verify_execute):
-        verify_execute.assert_any_call(["./node_modules/abao/bin/abao",
-                                           f"{test_file_path}",
-                                           "--timeout",
-                                           "100000",
-                                           "--server",
-                                           f"{target_url}",
-                                           "--reporter",
-                                           "xunit"],
-                                          f"{self.tmpDir}/target/reports/integration/INTEGRATIONTEST-RAML-{os.path.basename(test_file_path)}.xml")
+    def _assert_called_tavern_execution(self, test_dir, target_url, verify_execute):
+        output_file, run_name = pybuilder_integration.tasks.get_test_report_file(project=self.project,
+                                                                                 test_dir=test_dir)
+        verify_execute.assert_any_call(
+            [
+                f"TARGET={target_url} pytest",
+                "--junit-xml",
+                f"{output_file}"
+            ],
+            f"{self.tmpDir}/target/reports/integration/{run_name}-tavern.txt",
+            cwd=test_dir)
+
+    def _assert_protractor_run(self, test_directory, target_url, verify_execute):
+        verify_execute.assert_any_call([f"{self.tmpDir}/node_modules/protractor/bin/protractor",
+                                        f"--baseUrl={target_url}"],
+                                       f"{self.tmpDir}/target/logs/integration/protractor_run",
+                                       cwd=test_directory)
 
     def test_verify_environment(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
@@ -74,7 +76,7 @@ class TaskTestCase(ParentTestCase):
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
         self.project.set_property(pybuilder_integration.properties.ENVIRONMENT, "dev")
         distribution_directory = directory_utility.get_working_distribution_directory(self.project)
-        protractor_test_dir, raml_test_file_path = self._configure_mock_tests(distribution_directory)
+        protractor_test_dir, tavern_test_dir = self._configure_mock_tests(distribution_directory)
         pybuilder_integration.tasks.verify_environment(project=self.project, logger=mock_logger, reactor=reactor)
         self._assert_s3_transfer(source=directory_utility.prepare_dist_directory(self.project),
                                  destination=artifact_manager.get_versioned_artifact_destination(logger=mock_logger,
@@ -82,11 +84,11 @@ class TaskTestCase(ParentTestCase):
                                  verify_execute=verify_execute)
         self._assert_s3_transfer(source=directory_utility.prepare_dist_directory(self.project),
                                  destination=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
-                                                                                                 project=self.project),
+                                                                                              project=self.project),
                                  verify_execute=verify_execute)
         self._assert_s3_transfer(destination=directory_utility.get_latest_zipped_distribution_directory(self.project),
                                  source=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
-                                                                                                 project=self.project),
+                                                                                         project=self.project),
                                  verify_execute=verify_execute)
-        self._assert_called_raml_execution(raml_test_file_path, target_url, verify_execute)
-        self._assert_protractor_run(target_url, verify_execute, os.path.dirname(protractor_test_dir))
+        self._assert_called_tavern_execution(os.path.dirname(tavern_test_dir), target_url, verify_execute)
+        self._assert_protractor_run(os.path.dirname(protractor_test_dir), target_url, verify_execute)

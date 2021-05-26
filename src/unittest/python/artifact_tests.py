@@ -101,8 +101,8 @@ class ArtifactManagerTestCase(ParentTestCase):
     def test_artifact_packaging(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
         directory = f"{self.tmpDir}/artifact_packaging_test"
-        protractor_test_file_path, raml_test_file_path = self._configure_mock_tests(directory)
-        directory_utility.package_artifacts(self.project, os.path.dirname(raml_test_file_path), "raml")
+        protractor_test_file_path, tavern_test_file_path = self._configure_mock_tests(directory)
+        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern")
         directory_utility.package_artifacts(self.project, os.path.dirname(protractor_test_file_path), "protractor")
         directory = f"{self.tmpDir}/artifact_dest"
         os.makedirs(directory)
@@ -114,8 +114,8 @@ class ArtifactManagerTestCase(ParentTestCase):
         for pth in listdir:
             files = os.listdir(os.path.join(directory,pth))
             self.assertEqual(1,len(files),"Found unexpected files")
-            if os.path.basename(pth) == 'raml':
-                self.assertEqual('test.raml',os.path.basename(files[0]),"Found unexpected file")
+            if os.path.basename(pth) == 'tavern':
+                self.assertEqual('test.tavern.yaml',os.path.basename(files[0]),"Found unexpected file")
             elif os.path.basename(pth) == 'protractor':
                 self.assertEqual('test.json',os.path.basename(files[0]))
             else:

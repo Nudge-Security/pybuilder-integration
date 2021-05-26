@@ -20,7 +20,7 @@ def set_properties(project):
     else:
         project.version = "0.0.999"
     #Project Manifest
-    project.summary = "A pybuilder plugin that runs integration tests (RAML & Protractor) against a target."
+    project.summary = "A pybuilder plugin that runs integration tests (Tavern & Protractor) against a target."
     project.home_page = "https://github.com/rspitler/pybuilder-integration"
     project.description = "A pybuilder plugin that runs integration tests against a target.  This is intended to " \
                           "be a broader scope than unit-tests encompassing dependant functionality."
