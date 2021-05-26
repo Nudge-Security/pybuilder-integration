@@ -92,14 +92,15 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
         "--junit-xml",
         f"{output_file}"
     ]
-    exec_utility.exec_command(command_name=f"TARGET={project.get_property(INTEGRATION_TARGET_URL)} pytest",
+    exec_utility.exec_command(command_name="pytest",
                               args=args,
                               failure_message=f'Failed to execute tavern',
                               log_file_name=f"{run_name}-tavern.txt",
                               project=project,
                               reactor=reactor,
                               logger=logger,
-                              working_dir=test_dir)
+                              working_dir=test_dir,
+                              env_vars={"TARGET":project.get_property(INTEGRATION_TARGET_URL)})
 
 
 def get_test_report_file(project, test_dir):

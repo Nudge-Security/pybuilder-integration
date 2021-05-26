@@ -56,18 +56,19 @@ class TaskTestCase(ParentTestCase):
                                                                                  test_dir=test_dir)
         verify_execute.assert_any_call(
             [
-                f"TARGET={target_url} pytest",
+                f"pytest",
                 "--junit-xml",
                 f"{output_file}"
             ],
             f"{self.tmpDir}/target/reports/integration/{run_name}-tavern.txt",
-            cwd=test_dir)
+            cwd=test_dir, env={"TARGET":target_url})
 
     def _assert_protractor_run(self, test_directory, target_url, verify_execute):
         verify_execute.assert_any_call([f"{self.tmpDir}/node_modules/protractor/bin/protractor",
                                         f"--baseUrl={target_url}"],
                                        f"{self.tmpDir}/target/logs/integration/protractor_run",
-                                       cwd=test_directory)
+                                       cwd=test_directory,
+                                       env={})
 
     def test_verify_environment(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()

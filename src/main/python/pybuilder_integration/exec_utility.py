@@ -14,11 +14,19 @@ def exec_command(command_name,
                  logger,
                  working_dir=None,
                  raise_exception=True,
-                 report=True):
+                 report=True,
+                 env_vars=None):
     if working_dir:
-        command = WorkingDirCommandBuilder(command_name, project=project, reactor=reactor, cwd=working_dir)
+        command = WorkingDirCommandBuilder(command_name=command_name,
+                                           project=project,
+                                           reactor=reactor,
+                                           env=env_vars,
+                                           cwd=working_dir)
     else:
-        command = ExternalCommandBuilder(command_name, project=project, reactor=reactor)
+        command = ExternalCommandBuilder(command_name=command_name,
+                                         project=project,
+                                         reactor=reactor)
+
     for arg in args:
         command.use_argument(arg)
     if report:
@@ -38,13 +46,14 @@ def exec_command(command_name,
 
 class WorkingDirCommandBuilder(ExternalCommandBuilder):
 
-    def __init__(self, command_name, project, cwd, reactor):
+    def __init__(self, command_name, project, cwd, reactor, env=None):
         super(WorkingDirCommandBuilder, self).__init__(command_name, project, reactor)
+        self.env = env if env else {}
         self.cwd = cwd
 
     def run(self, outfile_name):
         error_file_name = "{0}.err".format(outfile_name)
-        return_code = self._env.execute_command(self.parts, outfile_name, cwd=self.cwd)
+        return_code = self._env.execute_command(self.parts, outfile_name, env=self.env, cwd=self.cwd)
         error_file_lines = read_file(error_file_name)
         outfile_lines = read_file(outfile_name)
 
