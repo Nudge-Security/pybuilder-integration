@@ -15,6 +15,9 @@ from pybuilder.plugins.python.core_plugin import init_python_directories
 def _pytest_main(args: Optional[Union[List[str], py.path.local]] = None,
                  plugins: Optional[Sequence[Union[str, object]]] = None,):
     return 0
+
+fail = False
+
 def _execute_create_files(command_and_arguments,
                           outfile_name=None,
                           env=None,
@@ -30,8 +33,10 @@ def _execute_create_files(command_and_arguments,
         pass
     with open(error_file_name, "w") as of:
         pass
-    return 0
-
+    if fail:
+        return 1
+    else:
+        return 0
 
 class ParentTestCase(TestCase):
 

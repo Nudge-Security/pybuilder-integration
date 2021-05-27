@@ -1,13 +1,16 @@
 import os
 from zipfile import ZipFile
 
+from pybuilder.errors import BuildFailedException
+
+import parent_test_case
 import pybuilder_integration
 import pybuilder_integration.directory_utility
 import pybuilder_integration.properties
 import pybuilder_integration.tasks
 import pybuilder_integration.tool_utility
 from parent_test_case import ParentTestCase
-from pybuilder_integration import directory_utility, artifact_manager
+from pybuilder_integration import directory_utility, artifact_manager, exec_utility
 
 DIRNAME = os.path.dirname(os.path.abspath(__file__))
 
@@ -39,6 +42,30 @@ class TaskTestCase(ParentTestCase):
             self.assertEqual(len(listOfiles), 1, "Found more entries in zip than expected")
             for elem in listOfiles:
                 self.assertEqual(file_name, elem, "Did not find expected entry")
+
+    def test_exec_fail(self):
+        try:
+            parent_test_case.fail = True
+            mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
+            self.assertRaises(BuildFailedException,exec_utility.exec_command,**{"command_name":"foo","args":[],"failure_message":"Failed","log_file_name":"foo","project":self.project,"reactor":reactor,"logger":mock_logger})
+        finally:
+            parent_test_case.fail = False
+
+
+    def test_verify_no_files(self):
+        mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
+        before = verify_execute.call_count
+        before_pytest = self.pytest_main_mock.call_count
+        self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, "foo")
+
+        pybuilder_integration.tasks._run_tavern_tests_in_dir(test_dir=os.path.join(self.tmpDir,"fake"),
+                                                             project=self.project, logger=mock_logger,
+                                                             reactor=reactor)
+        pybuilder_integration.tasks._run_protractor_tests_in_directory(work_dir=os.path.join(self.tmpDir,"fake"),
+                                                                       project=self.project, logger=mock_logger,
+                                                                       reactor=reactor)
+        self.assertEqual(before, verify_execute.call_count,"Got unexpected execution")
+        self.assertEqual(before_pytest, self.pytest_main_mock.call_count,"Got unexpected execution for tavern")
 
     def test_verify_tavern(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()

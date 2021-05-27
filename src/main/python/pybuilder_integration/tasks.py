@@ -67,13 +67,13 @@ def verify_protractor(project: Project, logger: Logger, reactor: Reactor):
 
 def _run_protractor_tests_in_directory(work_dir, logger, project, reactor: Reactor):
     target_url = project.get_mandatory_property(INTEGRATION_TARGET_URL)
-    # Validate NPM install and Install protractor
-    install_protractor(project=project, logger=logger, reactor=reactor)
-    executable = project.expand_path("./node_modules/protractor/bin/protractor")
     if not os.path.exists(work_dir):
         logger.info("Skipping protractor run: no tests")
         return False
     logger.info(f"Found {len(os.listdir(work_dir))} files in protractor test directory")
+    # Validate NPM install and Install protractor
+    install_protractor(project=project, logger=logger, reactor=reactor)
+    executable = project.expand_path("./node_modules/protractor/bin/protractor")
     # Run the actual tests against the baseURL provided by ${integration_target}
     exec_utility.exec_command(command_name=executable, args=[f"--baseUrl={target_url}"],
                               failure_message="Failed to execute protractor tests", log_file_name='protractor_run',
