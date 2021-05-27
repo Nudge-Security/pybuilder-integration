@@ -1,3 +1,5 @@
+import os
+
 from pybuilder.core import use_plugin, init
 
 use_plugin("python.core")
@@ -14,7 +16,8 @@ default_task = "publish"
 
 @init
 def set_properties(project):
-    build_number = project.get_property("build_number")
+    build_number = project.get_property("build_number",os.environ.get('GITHUB_RUN_NUMBER',
+                                                                      os.environ.get('TRAVIS_BUILD_NUMBER')))
     if build_number is not None and "" != build_number:
         project.version = build_number
     else:
