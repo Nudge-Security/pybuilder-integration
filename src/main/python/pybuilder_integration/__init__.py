@@ -1,4 +1,4 @@
-from pybuilder.core import task, Project, Logger
+from pybuilder.core import task, Project, Logger, depends
 from pybuilder.reactor import Reactor
 
 import pybuilder_integration.tasks
@@ -29,3 +29,9 @@ def verify_protractor(project: Project, logger: Logger, reactor: Reactor):
                   f"\t{TAVERN_TEST_DIR} - directory containing tavern specifications ({DEFAULT_TAVERN_TEST_DIR})")
 def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
     tasks.verify_tavern(project, logger, reactor)
+
+
+@task(description="Run verify_tavern and verify_protractor")
+@depends("verify_tavern","verify_protractor")
+def verify_package():
+    pass

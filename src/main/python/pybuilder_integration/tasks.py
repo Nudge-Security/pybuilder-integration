@@ -57,9 +57,9 @@ def verify_protractor(project: Project, logger: Logger, reactor: Reactor):
     project.set_property_if_unset(PROTRACTOR_TEST_DIR, "src/integrationtest/protractor")
     # Get directories with test and protractor executable
     work_dir = project.expand_path(f"${PROTRACTOR_TEST_DIR}")
-    _run_protractor_tests_in_directory(work_dir=work_dir, logger=logger, project=project,
-                                       reactor=reactor)
-    package_artifacts(project, work_dir, "protractor")
+    if _run_protractor_tests_in_directory(work_dir=work_dir, logger=logger, project=project,
+                                          reactor=reactor):
+        package_artifacts(project, work_dir, "protractor")
 
 
 def _run_protractor_tests_in_directory(work_dir, logger, project, reactor: Reactor):
@@ -67,12 +67,15 @@ def _run_protractor_tests_in_directory(work_dir, logger, project, reactor: React
     # Validate NPM install and Install protractor
     install_protractor(project=project, logger=logger, reactor=reactor)
     executable = project.expand_path("./node_modules/protractor/bin/protractor")
+    if not os.path.exists(work_dir):
+        logger.info("Skipping protractor run: no tests")
+        return False
     logger.info(f"Found {len(os.listdir(work_dir))} files in protractor test directory")
     # Run the actual tests against the baseURL provided by ${integration_target}
     exec_utility.exec_command(command_name=executable, args=[f"--baseUrl={target_url}"],
                               failure_message="Failed to execute protractor tests", log_file_name='protractor_run',
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False)
-
+    return True
 
 def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
     # Set the default
@@ -80,12 +83,17 @@ def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
     # Expand the directory to get full path
     test_dir = project.expand_path(f"${TAVERN_TEST_DIR}")
     # Run the tests in the directory
-    _run_tavern_tests_in_dir(test_dir, logger, project, reactor)
-    package_artifacts(project, test_dir, "tavern")
+    if _run_tavern_tests_in_dir(test_dir, logger, project, reactor):
+        package_artifacts(project, test_dir, "tavern")
 
 
 def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, reactor: Reactor):
     logger.info("Running tavern tests: {}".format(test_dir))
+
+    if not os.path.exists(test_dir):
+        logger.info("Skipping tavern run: no tests")
+        return False
+    logger.info(f"Found {len(os.listdir(test_dir))} files in tavern test directory")
     # todo is this enough?
     output_file, run_name = get_test_report_file(project, test_dir)
     args = [
@@ -101,6 +109,7 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
                               logger=logger,
                               working_dir=test_dir,
                               env_vars={"TARGET":project.get_property(INTEGRATION_TARGET_URL)})
+    return True
 
 
 def get_test_report_file(project, test_dir):
