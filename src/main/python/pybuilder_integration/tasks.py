@@ -1,6 +1,8 @@
 import os
 
+import pytest
 from pybuilder.core import Project, Logger, init
+from pybuilder.errors import BuildFailedException
 from pybuilder.reactor import Reactor
 
 from pybuilder_integration import exec_utility
@@ -94,21 +96,13 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
         logger.info("Skipping tavern run: no tests")
         return False
     logger.info(f"Found {len(os.listdir(test_dir))} files in tavern test directory")
-    # todo is this enough?
+    # todo is this unique enough for each run?
     output_file, run_name = get_test_report_file(project, test_dir)
-    args = [
-        "--junit-xml",
-        f"{output_file}"
-    ]
-    exec_utility.exec_command(command_name="pytest",
-                              args=args,
-                              failure_message=f'Failed to execute tavern',
-                              log_file_name=f"{run_name}-tavern.txt",
-                              project=project,
-                              reactor=reactor,
-                              logger=logger,
-                              working_dir=test_dir,
-                              env_vars={"TARGET":project.get_property(INTEGRATION_TARGET_URL)})
+    args = ["--junit-xml",f"{output_file}", test_dir]
+    os.environ['TARGET'] = project.get_property(INTEGRATION_TARGET_URL)
+    ret = pytest.main(args)
+    if ret != 0:
+        raise BuildFailedException(f"Tavern tests failed see complete output here - {output_file}")
     return True
 
 

@@ -27,7 +27,7 @@ def set_properties(project):
     project.author = "rspitler"
     project.license = "Apache 2.0"
     project.url = "https://github.com/rspitler/pybuilder-integration"
-    # project.depends_on_requirements("requirements.txt")
+    project.depends_on_requirements("src/main/python/requirements.txt")
     #Build and test settings
     project.set_property("run_unit_tests_propagate_stdout",True)
     project.set_property("run_unit_tests_propagate_stderr",True)

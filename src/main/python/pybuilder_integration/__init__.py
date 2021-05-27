@@ -1,4 +1,4 @@
-from pybuilder.core import task, Project, Logger, depends
+from pybuilder.core import task, Project, Logger, depends, after
 from pybuilder.reactor import Reactor
 
 import pybuilder_integration.tasks
@@ -33,5 +33,6 @@ def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
 
 @task(description="Run verify_tavern and verify_protractor")
 @depends("verify_tavern","verify_protractor")
+@after("publish")
 def verify_package():
     pass
