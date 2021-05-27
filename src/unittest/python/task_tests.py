@@ -54,14 +54,12 @@ class TaskTestCase(ParentTestCase):
     def _assert_called_tavern_execution(self, test_dir, target_url, verify_execute):
         output_file, run_name = pybuilder_integration.tasks.get_test_report_file(project=self.project,
                                                                                  test_dir=test_dir)
-        verify_execute.assert_any_call(
+        self.pytest_main_mock.assert_any_call(
             [
-                f"pytest",
                 "--junit-xml",
-                f"{output_file}"
-            ],
-            f"{self.tmpDir}/target/reports/integration/{run_name}-tavern.txt",
-            cwd=test_dir, env={"TARGET":target_url})
+                f"{output_file}",
+                f"{test_dir}"
+            ])
 
     def _assert_protractor_run(self, test_directory, target_url, verify_execute):
         verify_execute.assert_any_call([f"{self.tmpDir}/node_modules/protractor/bin/protractor",

@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from _pytest.config import ExitCode
 from pybuilder.core import Project, Logger, init
 from pybuilder.errors import BuildFailedException
 from pybuilder.reactor import Reactor

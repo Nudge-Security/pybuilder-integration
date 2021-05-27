@@ -1,14 +1,20 @@
 import os
 import shutil
 import tempfile
+from typing import Optional, Union, List, Sequence
 from unittest import TestCase
 from unittest.mock import Mock
 
+import py
+import pytest
 from pybuilder.core import Project, Logger
 from pybuilder.plugins import core_plugin
 from pybuilder.plugins.python.core_plugin import init_python_directories
 
 
+def _pytest_main(args: Optional[Union[List[str], py.path.local]] = None,
+                 plugins: Optional[Sequence[Union[str, object]]] = None,):
+    return 0
 def _execute_create_files(command_and_arguments,
                           outfile_name=None,
                           env=None,
@@ -44,6 +50,8 @@ class ParentTestCase(TestCase):
         reactor.python_env_registry = {}
         reactor.python_env_registry["pybuilder"] = pyb_env = Mock()
         pyb_env.environ = {}
+        pytest.main = pytest_main = Mock(side_effect=_pytest_main)
+        self.pytest_main_mock = pytest_main
         verify_mock = pyb_env.verify_can_execute = Mock()
         verify_execute = pyb_env.execute_command = Mock(side_effect=_execute_create_files)
         reactor.pybuilder_venv = pyb_env
