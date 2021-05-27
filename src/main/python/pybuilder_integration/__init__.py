@@ -32,6 +32,6 @@ def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
 
 
 @task(description="Run verify_tavern and verify_protractor")
-@depends("package","verify_tavern","verify_protractor")
+@depends("publish","verify_tavern","verify_protractor")
 def verify_package():
     pass
