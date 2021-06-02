@@ -100,7 +100,7 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     output_file, run_name = get_test_report_file(project, test_dir)
     from sys import path as syspath
     syspath.insert(0, test_dir)
-    extra_args = [project.expand(prop) for prop in project.get_property(TAVERN_ADDITIONAL_ARGS)]
+    extra_args = [project.expand(prop) for prop in project.get_property(TAVERN_ADDITIONAL_ARGS,[])]
     args = ["--junit-xml", f"{output_file}", test_dir] + extra_args
     if project.get_property("verbose"):
         args.append("-s")
