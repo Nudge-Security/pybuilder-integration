@@ -69,6 +69,7 @@ class TaskTestCase(ParentTestCase):
 
     def test_verify_tavern(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
+        pybuilder_integration.init_plugin(self.project)
         target_url = "foo"
         # Configure default properties
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
