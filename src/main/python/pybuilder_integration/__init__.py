@@ -1,8 +1,12 @@
-from pybuilder.core import task, Project, Logger, depends, after
+from pybuilder.core import task, Project, Logger, depends, after, init
 from pybuilder.reactor import Reactor
 
 import pybuilder_integration.tasks
 from pybuilder_integration.properties import *
+
+@init
+def init_plugin(project):
+    project.set_project("tavern_addition_args",[])
 
 
 @task(description="Runs integration tests against a CI/Prod environment."

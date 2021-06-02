@@ -1,7 +1,6 @@
 import os
 
 import pytest
-from _pytest.config import ExitCode
 from pybuilder.core import Project, Logger, init
 from pybuilder.errors import BuildFailedException
 from pybuilder.reactor import Reactor
@@ -99,7 +98,13 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     logger.info(f"Found {len(os.listdir(test_dir))} files in tavern test directory")
     # todo is this unique enough for each run?
     output_file, run_name = get_test_report_file(project, test_dir)
-    args = ["--junit-xml",f"{output_file}", test_dir]
+    from sys import path as syspath
+    syspath.insert(0, test_dir)
+    extra_args = [project.expand(prop) for prop in project.get_property(TAVERN_ADDITIONAL_ARGS)]
+    args = ["--junit-xml", f"{output_file}", test_dir] + extra_args
+    if project.get_property("verbose"):
+        args.append("-s")
+        args.append("-v")
     os.environ['TARGET'] = project.get_property(INTEGRATION_TARGET_URL)
     ret = pytest.main(args)
     if ret != 0:
