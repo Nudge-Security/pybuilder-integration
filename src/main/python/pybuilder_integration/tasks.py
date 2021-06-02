@@ -13,10 +13,6 @@ from pybuilder_integration.properties import *
 from pybuilder_integration.tool_utility import install_protractor
 
 
-@init
-def init_test_source_directory(project):
-    project.plugin_depends_on("pytest")
-    project.plugin_depends_on("tavern")
 
 
 def integration_artifact_push(project: Project, logger: Logger, reactor: Reactor):

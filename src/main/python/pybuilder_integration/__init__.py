@@ -6,8 +6,9 @@ from pybuilder_integration.properties import *
 
 @init
 def init_plugin(project):
-    project.set_project("tavern_addition_args",[])
-
+    project.set_property("tavern_addition_args",[])
+    project.plugin_depends_on("pytest")
+    project.plugin_depends_on("tavern")
 
 @task(description="Runs integration tests against a CI/Prod environment."
                   "\t1. Run current build integration tests found in ${dir_dist}\n"
