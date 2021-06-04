@@ -4,12 +4,8 @@ from pybuilder.reactor import Reactor
 from pybuilder_integration.exec_utility import exec_command
 
 
-def install_protractor(logger: Logger, project: Project, reactor: Reactor):
-    _install_npm_tool(tool_name="protractor", logger=logger, project=project, reactor=reactor)
-
-
-def install_abao(logger: Logger, project: Project, reactor: Reactor):
-    _install_npm_tool(tool_name="abao", logger=logger, project=project, reactor=reactor)
+def install_cypress(logger: Logger, project: Project, reactor: Reactor):
+    _install_npm_tool(tool_name="cypress", logger=logger, project=project, reactor=reactor)
 
 
 def _install_npm_tool(tool_name: str, logger: Logger, project: Project, reactor: Reactor):

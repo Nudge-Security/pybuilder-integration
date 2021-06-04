@@ -10,7 +10,7 @@ from pybuilder_integration.artifact_manager import get_artifact_manager
 from pybuilder_integration.directory_utility import prepare_dist_directory, get_working_distribution_directory, \
     package_artifacts, prepare_reports_directory
 from pybuilder_integration.properties import *
-from pybuilder_integration.tool_utility import install_protractor
+from pybuilder_integration.tool_utility import install_cypress
 
 
 
@@ -35,13 +35,13 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
 
 
 def _run_tests_in_directory(dist_directory, logger, project, reactor):
-    protractor_test_path = f"{dist_directory}/protractor"
-    if os.path.exists(protractor_test_path):
-        logger.info(f"Found protractor tests - starting run")
-        _run_protractor_tests_in_directory(work_dir=protractor_test_path,
-                                           logger=logger,
-                                           project=project,
-                                           reactor=reactor)
+    cypress_test_path = f"{dist_directory}/cypress"
+    if os.path.exists(cypress_test_path):
+        logger.info(f"Found cypress tests - starting run")
+        _run_cypress_tests_in_directory(work_dir=cypress_test_path,
+                                        logger=logger,
+                                        project=project,
+                                        reactor=reactor)
     tavern_test_path = f"{dist_directory}/tavern"
     if os.path.exists(tavern_test_path):
         logger.info(f"Found tavern tests - starting run")
@@ -51,27 +51,33 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor):
                                  reactor=reactor)
 
 
-def verify_protractor(project: Project, logger: Logger, reactor: Reactor):
-    project.set_property_if_unset(PROTRACTOR_TEST_DIR, "src/integrationtest/protractor")
-    # Get directories with test and protractor executable
-    work_dir = project.expand_path(f"${PROTRACTOR_TEST_DIR}")
-    if _run_protractor_tests_in_directory(work_dir=work_dir, logger=logger, project=project,
-                                          reactor=reactor):
-        package_artifacts(project, work_dir, "protractor")
+def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
+    project.set_property_if_unset(CYPRESS_TEST_DIR, "src/integrationtest/cypress")
+    # Get directories with test and cypress executable
+    work_dir = project.expand_path(f"${CYPRESS_TEST_DIR}")
+    if _run_cypress_tests_in_directory(work_dir=work_dir, logger=logger, project=project,
+                                       reactor=reactor):
+        package_artifacts(project, work_dir, "cypress")
 
 
-def _run_protractor_tests_in_directory(work_dir, logger, project, reactor: Reactor):
+def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor):
     target_url = project.get_mandatory_property(INTEGRATION_TARGET_URL)
+    environment = project.get_mandatory_property(ENVIRONMENT)
     if not os.path.exists(work_dir):
-        logger.info("Skipping protractor run: no tests")
+        logger.info("Skipping cypress run: no tests")
         return False
-    logger.info(f"Found {len(os.listdir(work_dir))} files in protractor test directory")
-    # Validate NPM install and Install protractor
-    install_protractor(project=project, logger=logger, reactor=reactor)
-    executable = project.expand_path("./node_modules/protractor/bin/protractor")
+    logger.info(f"Found {len(os.listdir(work_dir))} files in cypress test directory")
+    # Validate NPM install and Install cypress
+    install_cypress(project=project, logger=logger, reactor=reactor)
+    executable = project.expand_path("./node_modules/cypress/bin/cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
-    exec_utility.exec_command(command_name=executable, args=[f"--baseUrl={target_url}"],
-                              failure_message="Failed to execute protractor tests", log_file_name='protractor_run',
+    args = ["--env", f"host={target_url}"]
+    config_file_path = f'{environment}-config.json'
+    if os.path.exists(os.path.join(work_dir,config_file_path)):
+        args.append("--config-file")
+        args.append(config_file_path)
+    exec_utility.exec_command(command_name=executable, args=args,
+                              failure_message="Failed to execute cypress tests", log_file_name='cypress_run.log',
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False)
     return True
 

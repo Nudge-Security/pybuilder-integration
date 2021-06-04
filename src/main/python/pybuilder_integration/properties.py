@@ -1,7 +1,7 @@
 INTEGRATION_ARTIFACT_BUCKET = "integration_artifact_s3_bucket"
 ENVIRONMENT = "environment"
 ARTIFACT_MANAGER = "integration_artifact_manager"
-PROTRACTOR_TEST_DIR = "protractor_test_dir"
+CYPRESS_TEST_DIR = "cypress_test_dir"
 INTEGRATION_TARGET_URL = "integration_target_url"
 TAVERN_ADDITIONAL_ARGS = "tavern_addition_args"
 WORKING_TEST_DIR = "verify_environment_new_test_dir"

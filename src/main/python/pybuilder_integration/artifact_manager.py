@@ -175,8 +175,8 @@ def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Lo
         if os.path.basename(file).find("tavern") >= 0:
             shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/tavern",
                                   format="zip")
-        elif os.path.basename(file).find("protractor") >= 0:
-            shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/protractor",
+        elif os.path.basename(file).find("cypress") >= 0:
+            shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/cypress",
                                   format="zip")
         else:
             logger.warn(f"Unexpected file name in downloaded artifacts {file}")

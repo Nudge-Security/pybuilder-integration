@@ -22,12 +22,12 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
     tasks.verify_environment(project, logger, reactor)
 
 
-@task(description="Run integration tests using a protractor spec. Requires NPM installed.\n"
-                  f"\t{INTEGRATION_TARGET_URL} - (required) Full URL target for protractor tests\n"
-                  f"\t{PROTRACTOR_TEST_DIR} - directory for test specification (src/integrationtest/protractor)\n"
+@task(description="Run integration tests using a cypress spec. Requires NPM installed.\n"
+                  f"\t{INTEGRATION_TARGET_URL} - (required) Full URL target for cypress tests\n"
+                  f"\t{CYPRESS_TEST_DIR} - directory for test specification (src/integrationtest/cypress)\n"
       )
-def verify_protractor(project: Project, logger: Logger, reactor: Reactor):
-    tasks.verify_protractor(project, logger, reactor)
+def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
+    tasks.verify_cypress(project, logger, reactor)
 
 
 @task(description="Run integration tests using tavern specifications.\n"
@@ -36,7 +36,7 @@ def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
     tasks.verify_tavern(project, logger, reactor)
 
 
-@task(description="Run verify_tavern and verify_protractor")
-@depends("publish","verify_tavern","verify_protractor")
+@task(description="Run verify_tavern and verify_cypress")
+@depends("publish","verify_tavern","verify_cypress")
 def verify_package():
     pass

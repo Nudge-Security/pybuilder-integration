@@ -14,15 +14,9 @@ class ToolInstallTestCase(ParentTestCase):
 
     def test_npm_install(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
-        pybuilder_integration.tool_utility.install_abao(logger=mock_logger,
-                                                        project=self.project,
-                                                        reactor=reactor)
+        pybuilder_integration.tool_utility.install_cypress(logger=mock_logger,
+                                                           project=self.project,
+                                                           reactor=reactor)
         self._assert_npm_install(verify_mock)
-        verify_execute.assert_called_with(["npm", "install", "abao"],
-                                          f"{self.tmpDir}/target/logs/integration/abao_npm_install")
-        pybuilder_integration.tool_utility.install_protractor(logger=mock_logger,
-                                                              project=self.project,
-                                                              reactor=reactor)
-        self._assert_npm_install(verify_mock)
-        verify_execute.assert_called_with(["npm", "install", "protractor"],
-                                          f"{self.tmpDir}/target/logs/integration/protractor_npm_install")
+        verify_execute.assert_called_with(["npm", "install", "cypress"],
+                                          f"{self.tmpDir}/target/logs/integration/cypress_npm_install")

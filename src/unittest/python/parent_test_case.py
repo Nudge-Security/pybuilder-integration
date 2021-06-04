@@ -11,6 +11,8 @@ from pybuilder.core import Project, Logger
 from pybuilder.plugins import core_plugin
 from pybuilder.plugins.python.core_plugin import init_python_directories
 
+from pybuilder_integration import ENVIRONMENT
+
 
 def _pytest_main(args: Optional[Union[List[str], py.path.local]] = None,
                  plugins: Optional[Sequence[Union[str, object]]] = None,):
@@ -43,6 +45,7 @@ class ParentTestCase(TestCase):
     def setUp(self) -> None:
         self.tmpDir = tempfile.mkdtemp()
         self.project = Project(basedir=self.tmpDir)
+        self.project.set_property(ENVIRONMENT,"unit-test")
         core_plugin.init(self.project)
         init_python_directories(self.project)
 
@@ -90,8 +93,8 @@ class ParentTestCase(TestCase):
 
     def _configure_mock_tests(self, distribution_directory):
         tavern_test_file_name = "test.tavern.yaml"
-        protractor_test_file_name = "test.json"
+        cypress_test_file_name = "test.json"
         tavern_test_file_path = self._configure_mock_tests_dir(f"{distribution_directory}/tavern", tavern_test_file_name)
-        protractor_test_file_path = self._configure_mock_tests_dir(f"{distribution_directory}/protractor",
-                                                                   protractor_test_file_name)
-        return protractor_test_file_path, tavern_test_file_path
+        cypress_test_file_path = self._configure_mock_tests_dir(f"{distribution_directory}/cypress",
+                                                                   cypress_test_file_name)
+        return cypress_test_file_path, tavern_test_file_path
