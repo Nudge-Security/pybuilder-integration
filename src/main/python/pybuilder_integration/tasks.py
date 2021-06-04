@@ -76,6 +76,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     if os.path.exists(os.path.join(work_dir,config_file_path)):
         args.append("--config-file")
         args.append(config_file_path)
+    logger.info(f"Running cypress on host: {target_url}")
     exec_utility.exec_command(command_name=executable, args=args,
                               failure_message="Failed to execute cypress tests", log_file_name='cypress_run.log',
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False)
