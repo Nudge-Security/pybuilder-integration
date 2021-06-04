@@ -24,13 +24,13 @@ def integration_artifact_push(project: Project, logger: Logger, reactor: Reactor
 
 
 def verify_environment(project: Project, logger: Logger, reactor: Reactor):
-    dist_directory = get_working_distribution_directory(project)
-    logger.info(f"Preparing to run tests found in {dist_directory}")
+    dist_directory = project.get_property(WORKING_TEST_DIR, get_working_distribution_directory(project))
+    logger.info(f"Preparing to run tests found in: {dist_directory}")
     _run_tests_in_directory(dist_directory, logger, project, reactor)
     artifact_manager = get_artifact_manager(project=project)
     latest_directory = artifact_manager.download_artifacts(project=project, logger=logger, reactor=reactor)
     _run_tests_in_directory(latest_directory, logger, project, reactor)
-    if project.get_property(PROMOTE_ARTIFACT, "TRUE") == "TRUE":
+    if project.get_property(PROMOTE_ARTIFACT, True) == True:
         integration_artifact_push(project=project, logger=logger, reactor=reactor)
 
 
