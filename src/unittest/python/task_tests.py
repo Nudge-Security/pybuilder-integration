@@ -99,7 +99,7 @@ class TaskTestCase(ParentTestCase):
             ])
 
     def _assert_cypress_run(self, test_directory, target_url, verify_execute, config_file=False):
-        args = [f"{self.tmpDir}/node_modules/cypress/bin/cypress",
+        args = [f"{self.tmpDir}/node_modules/cypress/bin/cypress","run",
                 f"--env", f"host={target_url}"]
         if config_file:
             environment = self.project.get_mandatory_property(properties.ENVIRONMENT)

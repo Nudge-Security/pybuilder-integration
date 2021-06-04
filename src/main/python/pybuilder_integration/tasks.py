@@ -71,7 +71,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     install_cypress(project=project, logger=logger, reactor=reactor)
     executable = project.expand_path("./node_modules/cypress/bin/cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
-    args = ["--env", f"host={target_url}"]
+    args = ["run","--env", f"host={target_url}"]
     config_file_path = f'{environment}-config.json'
     if os.path.exists(os.path.join(work_dir,config_file_path)):
         args.append("--config-file")
