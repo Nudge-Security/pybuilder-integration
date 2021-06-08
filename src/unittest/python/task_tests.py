@@ -111,25 +111,41 @@ class TaskTestCase(ParentTestCase):
                                        env={})
 
     def test_verify_environment(self):
+        # create mocks
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
         target_url = "foo"
         # Configure default properties
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
         self.project.set_property(pybuilder_integration.properties.ENVIRONMENT, "dev")
+        # mock working tests
         distribution_directory = directory_utility.get_working_distribution_directory(self.project)
         cypress_test_dir, tavern_test_dir = self._configure_mock_tests(distribution_directory)
+        # mock downloaded tests
+        latest_dir = directory_utility.get_latest_distribution_directory(self.project)
+        cypress_latest_test_dir, tavern_latest_test_dir = self._configure_mock_tests(latest_dir)
+        # Run actual task
         pybuilder_integration.tasks.verify_environment(project=self.project, logger=mock_logger, reactor=reactor)
-        self._assert_s3_transfer(source=directory_utility.prepare_dist_directory(self.project),
-                                 destination=artifact_manager.get_versioned_artifact_destination(logger=mock_logger,
-                                                                                                 project=self.project),
-                                 verify_execute=verify_execute)
-        self._assert_s3_transfer(source=directory_utility.prepare_dist_directory(self.project),
-                                 destination=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
-                                                                                              project=self.project),
-                                 verify_execute=verify_execute)
+        # Run cypress & tavern in local working directory
+        self._assert_called_tavern_execution(os.path.dirname(tavern_test_dir), target_url, verify_execute)
+        self._assert_cypress_run(os.path.dirname(cypress_test_dir), target_url, verify_execute)
+        # download latest
         self._assert_s3_transfer(destination=directory_utility.get_latest_zipped_distribution_directory(self.project),
                                  source=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
                                                                                          project=self.project),
                                  verify_execute=verify_execute)
-        self._assert_called_tavern_execution(os.path.dirname(tavern_test_dir), target_url, verify_execute)
-        self._assert_cypress_run(os.path.dirname(cypress_test_dir), target_url, verify_execute)
+        # Run against latest
+        self._assert_called_tavern_execution(os.path.dirname(tavern_latest_test_dir), target_url, verify_execute)
+        self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute)
+        # Promote local archive to latest & upload local archive to versioned dir
+        for tool in ["tavern","cypress"]:
+            zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool=tool, project=self.project,
+                                                                              include_ending=True)
+            self._assert_s3_transfer(source=zip_artifact_path,
+                                     destination=artifact_manager.get_versioned_artifact_destination(logger=mock_logger,
+                                                                                                     project=self.project),
+                                     verify_execute=verify_execute)
+            self._assert_s3_transfer(source=zip_artifact_path,
+                                     destination=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
+                                                                                                  project=self.project),
+                                     verify_execute=verify_execute)
+

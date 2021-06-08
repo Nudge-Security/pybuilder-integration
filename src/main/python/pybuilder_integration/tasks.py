@@ -8,7 +8,7 @@ from pybuilder.reactor import Reactor
 from pybuilder_integration import exec_utility
 from pybuilder_integration.artifact_manager import get_artifact_manager
 from pybuilder_integration.directory_utility import prepare_dist_directory, get_working_distribution_directory, \
-    package_artifacts, prepare_reports_directory
+    package_artifacts, prepare_reports_directory, get_local_zip_artifact_path
 from pybuilder_integration.properties import *
 from pybuilder_integration.tool_utility import install_cypress
 
@@ -18,9 +18,10 @@ from pybuilder_integration.tool_utility import install_cypress
 def integration_artifact_push(project: Project, logger: Logger, reactor: Reactor):
     logger.info("Starting upload of integration artifacts")
     manager = get_artifact_manager(project)
-    dist_directory = prepare_dist_directory(project)
-    logger.info(f"Starting upload of integration artifacts to {manager.friendly_name}")
-    manager.upload(dist_directory=dist_directory, project=project, logger=logger, reactor=reactor)
+    for tool in ["tavern","cypress"]:
+        artifact = get_local_zip_artifact_path(tool=tool, project=project, include_ending=True)
+        logger.info(f"Starting upload of integration artifacts to {manager.friendly_name}")
+        manager.upload(dist_directory=artifact, project=project, logger=logger, reactor=reactor)
 
 
 def verify_environment(project: Project, logger: Logger, reactor: Reactor):

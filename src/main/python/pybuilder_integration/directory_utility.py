@@ -41,6 +41,13 @@ def get_latest_zipped_distribution_directory(project):
     return _ensure_directory_exists(f"{dist_directory}/LATEST/zipped")
 
 
+def get_local_zip_artifact_path(tool, project, include_ending=False):
+    artifact = f"{prepare_dist_directory(project)}/{tool}-{project.name}"
+    if include_ending:
+        return f"{artifact}.zip"
+    return artifact
+
+
 def package_artifacts(project, test_dir, tool):
     # Make a copy for easy access in environment validation
     working_dir = get_working_distribution_directory(project)
@@ -48,6 +55,7 @@ def package_artifacts(project, test_dir, tool):
     # package a copy for distribution
     # zip up the test and add them to the integration test dist directory
     dist_directory = prepare_dist_directory(project)
-    shutil.make_archive(base_name=f"{dist_directory}/{tool}-{project.name}",
+    base_name = get_local_zip_artifact_path(tool=tool, project=project)
+    shutil.make_archive(base_name=base_name,
                         format="zip",
                         root_dir=test_dir)
