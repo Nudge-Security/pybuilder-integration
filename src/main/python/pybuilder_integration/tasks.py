@@ -18,8 +18,9 @@ def integration_artifact_push(project: Project, logger: Logger, reactor: Reactor
     manager = get_artifact_manager(project)
     for tool in ["tavern", "cypress"]:
         artifact_file = get_local_zip_artifact_path(tool=tool, project=project, include_ending=True)
-        logger.info(f"Starting upload of integration artifacts to {manager.friendly_name}")
-        manager.upload(file=artifact_file, project=project, logger=logger, reactor=reactor)
+        if os.path.exists(artifact_file):
+            logger.info(f"Starting upload of integration artifact: {os.path.basename(artifact_file)} to: {manager.friendly_name}")
+            manager.upload(file=artifact_file, project=project, logger=logger, reactor=reactor)
 
 
 def verify_environment(project: Project, logger: Logger, reactor: Reactor):
