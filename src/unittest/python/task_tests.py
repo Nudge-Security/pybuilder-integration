@@ -123,12 +123,11 @@ class TaskTestCase(ParentTestCase):
         # mock downloaded tests
         latest_dir = directory_utility.get_latest_distribution_directory(self.project)
         cypress_latest_test_dir, tavern_latest_test_dir = self._configure_mock_tests(latest_dir)
-        # mock bundled integration artifacts
-        for tool in ['tavern','cypress']:
-            zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool=tool, project=self.project,
+        # mock bundled integration artifacts for tavern not cypress
+        zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool='tavern', project=self.project,
                                                                           include_ending=True)
-            with open(zip_artifact_path,'w+') as fp:
-                pass #touch
+        with open(zip_artifact_path,'w+') as fp:
+            pass #touch
 
         # Run actual task
         pybuilder_integration.tasks.verify_environment(project=self.project, logger=mock_logger, reactor=reactor)
@@ -143,15 +142,14 @@ class TaskTestCase(ParentTestCase):
         # Run against latest
         self._assert_called_tavern_execution(os.path.dirname(tavern_latest_test_dir), target_url, verify_execute)
         self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute)
-        # Promote local archive to latest & upload local archive to versioned dir
-        for tool in ["tavern", "cypress"]:
-            zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool=tool, project=self.project,
-                                                                              include_ending=True)
-            self._assert_s3_transfer(source=zip_artifact_path,
-                                     destination=artifact_manager.get_versioned_artifact_destination(logger=mock_logger,
-                                                                                                     project=self.project),
-                                     verify_execute=verify_execute, recursive=False)
-            self._assert_s3_transfer(source=zip_artifact_path,
+        # Promote local tavern archive to latest & upload local archive to versioned dir - cypress does not exist
+        zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool="tavern", project=self.project,
+                                                                          include_ending=True)
+        self._assert_s3_transfer(source=zip_artifact_path,
+                                 destination=artifact_manager.get_versioned_artifact_destination(logger=mock_logger,
+                                                                                                 project=self.project),
+                                 verify_execute=verify_execute, recursive=False)
+        self._assert_s3_transfer(source=zip_artifact_path,
                                      destination=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
                                                                                                   project=self.project),
                                      verify_execute=verify_execute, recursive=False)
