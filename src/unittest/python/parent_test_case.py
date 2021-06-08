@@ -75,8 +75,11 @@ class ParentTestCase(TestCase):
                                     prerequisite="npm",
                                     caller="integration_tests")
 
-    def _assert_s3_transfer(self, source, destination, verify_execute):
-        verify_execute.assert_any_call(["aws", "s3", "cp", source, destination, "--recursive"],
+    def _assert_s3_transfer(self, source, destination, verify_execute, recursive=True):
+        args = ["aws", "s3", "cp", source, destination]
+        if recursive:
+            args.append("--recursive")
+        verify_execute.assert_any_call(args,
                                        f"{self.tmpDir}/target/logs/integration/s3-artifact-transfer")
 
     def _configure_mock_tests_dir(self, default_path, file_name):

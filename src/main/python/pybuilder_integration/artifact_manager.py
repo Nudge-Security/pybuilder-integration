@@ -18,7 +18,7 @@ class ArtifactManager:
         self.identifier = identifier
         self.friendly_name = name
 
-    def upload(self, dist_directory: str, project: Project, logger: Logger, reactor: Reactor):
+    def upload(self, file: str, project: Project, logger: Logger, reactor: Reactor):
         pass
 
     def download_artifacts(self, project: Project, logger: Logger, reactor: Reactor):
@@ -30,15 +30,15 @@ class S3ArtifactManager(ArtifactManager):
     def __init__(self):
         super().__init__("AWS S3 Artifact Manager", "S3")
 
-    def upload(self, dist_directory: str, project: Project, logger: Logger, reactor: Reactor):
+    def upload(self, file: str, project: Project, logger: Logger, reactor: Reactor):
         if project.get_property("abort_upload","false") != "false":
             return
         # First make sure bucket exists
         self.create_bucket(logger, project, reactor)
         relative_path = get_latest_artifact_destination(logger, project)
-        self._s3_transfer(dist_directory, relative_path, project, reactor, logger)
+        self._s3_transfer(file, relative_path, project, reactor, logger, recursive=False)
         relative_path = get_versioned_artifact_destination(logger, project)
-        self._s3_transfer(dist_directory, relative_path, project, reactor, logger)
+        self._s3_transfer(file, relative_path, project, reactor, logger, recursive=False)
 
     def download_artifacts(self, project: Project, logger: Logger, reactor: Reactor):
         # this is a noop if there is no bucket
@@ -54,18 +54,20 @@ class S3ArtifactManager(ArtifactManager):
         return _unzip_downloaded_artifacts(zipped_directory, get_latest_distribution_directory(project), logger)
 
     @staticmethod
-    def _s3_transfer(source, destination, project, reactor, logger):
+    def _s3_transfer(source, destination, project, reactor, logger, recursive=True):
         logger.info(f"Proceeding to transfer {source} to {destination}")
         S3ArtifactManager.verify_aws_cli(reactor)
         #  aws s3 cp myDir s3://mybucket/ --recursive
+        args = [
+            's3',
+            'cp',
+            source,
+            destination
+        ]
+        if recursive:
+            args.append("--recursive")
         exec_utility.exec_command(command_name='aws',
-                                  args=[
-                                      's3',
-                                      'cp',
-                                      source,
-                                      destination,
-                                      "--recursive"
-                                  ],
+                                  args=args,
                                   failure_message=f"Failed to transfer integration artifacts to {destination}",
                                   log_file_name='s3-artifact-transfer',
                                   project=project,

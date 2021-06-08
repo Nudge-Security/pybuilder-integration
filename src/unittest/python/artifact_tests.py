@@ -86,8 +86,8 @@ class ArtifactManagerTestCase(ParentTestCase):
         self.project.set_property("abort_upload","true")
         try:
             verify_mock.reset_mock()
-            artifact_manager.upload(dist_directory=relative_path, project=self.project,
-                                          reactor=reactor, logger=mock_logger)
+            artifact_manager.upload(file=relative_path, project=self.project,
+                                    reactor=reactor, logger=mock_logger)
             verify_mock.assert_not_called()
         finally:
             self.project.set_property("abort_upload","false")

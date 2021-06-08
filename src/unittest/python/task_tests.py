@@ -132,7 +132,7 @@ class TaskTestCase(ParentTestCase):
         self._assert_s3_transfer(destination=directory_utility.get_latest_zipped_distribution_directory(self.project),
                                  source=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
                                                                                          project=self.project),
-                                 verify_execute=verify_execute)
+                                 verify_execute=verify_execute, recursive=True)
         # Run against latest
         self._assert_called_tavern_execution(os.path.dirname(tavern_latest_test_dir), target_url, verify_execute)
         self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute)
@@ -143,9 +143,9 @@ class TaskTestCase(ParentTestCase):
             self._assert_s3_transfer(source=zip_artifact_path,
                                      destination=artifact_manager.get_versioned_artifact_destination(logger=mock_logger,
                                                                                                      project=self.project),
-                                     verify_execute=verify_execute)
+                                     verify_execute=verify_execute, recursive=False)
             self._assert_s3_transfer(source=zip_artifact_path,
                                      destination=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
                                                                                                   project=self.project),
-                                     verify_execute=verify_execute)
+                                     verify_execute=verify_execute, recursive=False)
 

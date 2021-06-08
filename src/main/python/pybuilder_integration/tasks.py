@@ -13,15 +13,13 @@ from pybuilder_integration.properties import *
 from pybuilder_integration.tool_utility import install_cypress
 
 
-
-
 def integration_artifact_push(project: Project, logger: Logger, reactor: Reactor):
     logger.info("Starting upload of integration artifacts")
     manager = get_artifact_manager(project)
-    for tool in ["tavern","cypress"]:
-        artifact = get_local_zip_artifact_path(tool=tool, project=project, include_ending=True)
+    for tool in ["tavern", "cypress"]:
+        artifact_file = get_local_zip_artifact_path(tool=tool, project=project, include_ending=True)
         logger.info(f"Starting upload of integration artifacts to {manager.friendly_name}")
-        manager.upload(dist_directory=artifact, project=project, logger=logger, reactor=reactor)
+        manager.upload(file=artifact_file, project=project, logger=logger, reactor=reactor)
 
 
 def verify_environment(project: Project, logger: Logger, reactor: Reactor):
@@ -31,7 +29,7 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
     artifact_manager = get_artifact_manager(project=project)
     latest_directory = artifact_manager.download_artifacts(project=project, logger=logger, reactor=reactor)
     _run_tests_in_directory(latest_directory, logger, project, reactor)
-    if project.get_property(PROMOTE_ARTIFACT, True) == True:
+    if project.get_property(PROMOTE_ARTIFACT, True):
         integration_artifact_push(project=project, logger=logger, reactor=reactor)
 
 
@@ -72,9 +70,9 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     install_cypress(project=project, logger=logger, reactor=reactor)
     executable = project.expand_path("./node_modules/cypress/bin/cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
-    args = ["run","--env", f"host={target_url}"]
+    args = ["run", "--env", f"host={target_url}"]
     config_file_path = f'{environment}-config.json'
-    if os.path.exists(os.path.join(work_dir,config_file_path)):
+    if os.path.exists(os.path.join(work_dir, config_file_path)):
         args.append("--config-file")
         args.append(config_file_path)
     logger.info(f"Running cypress on host: {target_url}")
@@ -82,6 +80,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
                               failure_message="Failed to execute cypress tests", log_file_name='cypress_run.log',
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False)
     return True
+
 
 def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
     # Set the default
@@ -104,7 +103,7 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     output_file, run_name = get_test_report_file(project, test_dir)
     from sys import path as syspath
     syspath.insert(0, test_dir)
-    extra_args = [project.expand(prop) for prop in project.get_property(TAVERN_ADDITIONAL_ARGS,[])]
+    extra_args = [project.expand(prop) for prop in project.get_property(TAVERN_ADDITIONAL_ARGS, [])]
     args = ["--junit-xml", f"{output_file}", test_dir] + extra_args
     if project.get_property("verbose"):
         args.append("-s")
