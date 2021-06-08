@@ -4,11 +4,15 @@ from pybuilder.reactor import Reactor
 import pybuilder_integration.tasks
 from pybuilder_integration.properties import *
 
+
 @init
 def init_plugin(project):
-    project.set_property("tavern_addition_args",[])
+    project.set_property("tavern_addition_args", [])
+    project.set_property_if_unset(CYPRESS_TEST_DIR, "src/integrationtest/cypress")
+    project.set_property_if_unset(TAVERN_TEST_DIR, DEFAULT_TAVERN_TEST_DIR)
     project.plugin_depends_on("pytest")
     project.plugin_depends_on("tavern")
+
 
 @task(description="Runs integration tests against a CI/Prod environment."
                   "\t1. Run current build integration tests found in ${dir_dist}\n"
@@ -37,6 +41,24 @@ def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
 
 
 @task(description="Run verify_tavern and verify_cypress")
-@depends("publish","verify_tavern","verify_cypress")
+@depends("publish", "verify_tavern", "verify_cypress")
 def verify_package():
     pass
+
+
+@task(description="Package artifacts for publishing in integration tests")
+def package_artifacts(project: Project):
+    package_tavern_artifacts(project)
+    package_cypress_artifacts(project)
+
+
+@task(description="Package tavern artifacts for publishing in integration tests")
+def package_tavern_artifacts(project: Project):
+    test_dir = project.expand_path(f"${TAVERN_TEST_DIR}")
+    tasks.package_artifacts(project, test_dir, "tavern")
+
+
+@task(description="Package cypress artifacts for publishing in integration tests")
+def package_cypress_artifacts(project: Project):
+    test_dir = project.expand_path(f"${CYPRESS_TEST_DIR}")
+    tasks.package_artifacts(project, test_dir, "cypress")

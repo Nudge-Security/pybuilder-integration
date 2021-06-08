@@ -11,7 +11,7 @@ from pybuilder.core import Project, Logger
 from pybuilder.plugins import core_plugin
 from pybuilder.plugins.python.core_plugin import init_python_directories
 
-from pybuilder_integration import ENVIRONMENT
+from pybuilder_integration import ENVIRONMENT, init_plugin
 
 
 def _pytest_main(args: Optional[Union[List[str], py.path.local]] = None,
@@ -47,6 +47,7 @@ class ParentTestCase(TestCase):
         self.project = Project(basedir=self.tmpDir)
         self.project.set_property(ENVIRONMENT,"unit-test")
         core_plugin.init(self.project)
+        init_plugin(self.project)
         init_python_directories(self.project)
 
     def tearDown(self):

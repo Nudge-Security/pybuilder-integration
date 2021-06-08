@@ -52,7 +52,6 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor):
 
 
 def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
-    project.set_property_if_unset(CYPRESS_TEST_DIR, "src/integrationtest/cypress")
     # Get directories with test and cypress executable
     work_dir = project.expand_path(f"${CYPRESS_TEST_DIR}")
     if _run_cypress_tests_in_directory(work_dir=work_dir, logger=logger, project=project,
@@ -84,8 +83,6 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
 
 
 def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
-    # Set the default
-    project.set_property_if_unset(TAVERN_TEST_DIR, DEFAULT_TAVERN_TEST_DIR)
     # Expand the directory to get full path
     test_dir = project.expand_path(f"${TAVERN_TEST_DIR}")
     # Run the tests in the directory

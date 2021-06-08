@@ -54,7 +54,6 @@ def package_artifacts(project, test_dir, tool):
     shutil.copytree(test_dir, f"{working_dir}/{tool}",dirs_exist_ok=True)
     # package a copy for distribution
     # zip up the test and add them to the integration test dist directory
-    dist_directory = prepare_dist_directory(project)
     base_name = get_local_zip_artifact_path(tool=tool, project=project)
     shutil.make_archive(base_name=base_name,
                         format="zip",
