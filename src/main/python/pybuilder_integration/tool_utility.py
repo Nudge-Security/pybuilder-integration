@@ -6,6 +6,7 @@ from pybuilder_integration.exec_utility import exec_command
 
 def install_cypress(logger: Logger, project: Project, reactor: Reactor):
     _install_npm_tool(tool_name="cypress", logger=logger, project=project, reactor=reactor)
+    _install_npm_tool(tool_name="typescript", logger=logger, project=project, reactor=reactor)
 
 
 def _install_npm_tool(tool_name: str, logger: Logger, project: Project, reactor: Reactor):
