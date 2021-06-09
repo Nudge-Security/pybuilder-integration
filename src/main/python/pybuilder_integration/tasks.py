@@ -6,7 +6,7 @@ from pybuilder.errors import BuildFailedException
 from pybuilder.install_utils import install_dependencies
 from pybuilder.reactor import Reactor
 
-from pybuilder_integration import exec_utility
+from pybuilder_integration import exec_utility, tool_utility
 from pybuilder_integration.artifact_manager import get_artifact_manager
 from pybuilder_integration.directory_utility import prepare_dist_directory, get_working_distribution_directory, \
     package_artifacts, prepare_reports_directory, get_local_zip_artifact_path
@@ -69,6 +69,10 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     logger.info(f"Found {len(os.listdir(work_dir))} files in cypress test directory")
     # Validate NPM install and Install cypress
     install_cypress(project=project, logger=logger, reactor=reactor)
+    package_json = os.path.join(work_dir, "package.json")
+    if os.path.exists(package_json):
+        logger.info("Found package.json installing dependencies")
+        tool_utility.install_npm_dependencies(package_json, project=project, logger=logger, reactor=reactor)
     executable = project.expand_path("./node_modules/cypress/bin/cypress")
     results_file, run_name = get_test_report_file(project=project,test_dir=work_dir,tool="cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
