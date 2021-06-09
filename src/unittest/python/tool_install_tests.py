@@ -18,5 +18,7 @@ class ToolInstallTestCase(ParentTestCase):
                                                            project=self.project,
                                                            reactor=reactor)
         self._assert_npm_install(verify_mock)
-        verify_execute.assert_called_with(["npm", "install", "cypress"],
+        verify_execute.assert_any_call(["npm", "install", "cypress"],
                                           f"{self.tmpDir}/target/logs/integration/cypress_npm_install")
+        verify_execute.assert_any_call(["npm", "install", "typescript"],
+                                          f"{self.tmpDir}/target/logs/integration/typescript_npm_install")
