@@ -106,7 +106,7 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     # install any requirements that my exist
     requirements_file = os.path.join(test_dir, "requirements.txt")
     if os.path.exists(requirements_file):
-        dependency = RequirementsFile("requirements.txt")
+        dependency = RequirementsFile(requirements_file)
         install_dependencies(logger, project, dependency, reactor.pybuilder_venv, "install_batch")
     extra_args = [project.expand(prop) for prop in project.get_property(TAVERN_ADDITIONAL_ARGS, [])]
     args = ["--junit-xml", f"{output_file}", test_dir] + extra_args
