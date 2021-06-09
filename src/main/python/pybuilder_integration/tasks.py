@@ -71,8 +71,8 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     executable = project.expand_path("./node_modules/cypress/bin/cypress")
     results_file, run_name = get_test_report_file(project=project,test_dir=work_dir,tool="cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
-    args = ["run", "--env", f"host={target_url}","--reporter-options",
-            f"mochaFile={results_file},toConsole=true"]
+    args = ["run", "--config", f"baseUrl={target_url}", "--reporter-options",
+            f"mochaFile={results_file}"]
     config_file_path = f'{environment}-config.json'
     if os.path.exists(os.path.join(work_dir, config_file_path)):
         args.append("--config-file")
