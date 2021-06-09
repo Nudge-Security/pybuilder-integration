@@ -69,8 +69,10 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     # Validate NPM install and Install cypress
     install_cypress(project=project, logger=logger, reactor=reactor)
     executable = project.expand_path("./node_modules/cypress/bin/cypress")
+    results_file, run_name = get_test_report_file(project=project,test_dir=work_dir,tool="cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
-    args = ["run", "--env", f"host={target_url}"]
+    args = ["run", "--env", f"host={target_url}","--reporter-options",
+            f"mochaFile={results_file},toConsole=true"]
     config_file_path = f'{environment}-config.json'
     if os.path.exists(os.path.join(work_dir, config_file_path)):
         args.append("--config-file")
@@ -113,7 +115,7 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     return True
 
 
-def get_test_report_file(project, test_dir):
+def get_test_report_file(project, test_dir,tool="tavern"):
     run_name = os.path.basename(os.path.realpath(os.path.join(test_dir, os.pardir)))
-    output_file = os.path.join(prepare_reports_directory(project), f"tavern-{run_name}.out.xml")
+    output_file = os.path.join(prepare_reports_directory(project), f"{tool}-{run_name}.out.xml")
     return output_file, run_name

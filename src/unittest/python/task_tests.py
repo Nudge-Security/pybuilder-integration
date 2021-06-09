@@ -99,8 +99,12 @@ class TaskTestCase(ParentTestCase):
             ])
 
     def _assert_cypress_run(self, test_directory, target_url, verify_execute, config_file=False):
+        results_file, run_name = pybuilder_integration.tasks.get_test_report_file(project=self.project,
+                                                                                 test_dir=test_directory,
+                                                                                 tool="cypress")
         args = [f"{self.tmpDir}/node_modules/cypress/bin/cypress","run",
-                f"--env", f"host={target_url}"]
+                f"--env", f"host={target_url}","--reporter-options",
+                f"mochaFile={results_file},toConsole=true"]
         if config_file:
             environment = self.project.get_mandatory_property(properties.ENVIRONMENT)
             args.append("--config-file")
