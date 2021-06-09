@@ -1,8 +1,9 @@
 import os
 
 import pytest
-from pybuilder.core import Project, Logger, init
+from pybuilder.core import Project, Logger, init, RequirementsFile
 from pybuilder.errors import BuildFailedException
+from pybuilder.install_utils import install_dependencies
 from pybuilder.reactor import Reactor
 
 from pybuilder_integration import exec_utility
@@ -94,7 +95,6 @@ def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
 
 def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, reactor: Reactor):
     logger.info("Running tavern tests: {}".format(test_dir))
-
     if not os.path.exists(test_dir):
         logger.info("Skipping tavern run: no tests")
         return False
@@ -103,6 +103,11 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     output_file, run_name = get_test_report_file(project, test_dir)
     from sys import path as syspath
     syspath.insert(0, test_dir)
+    # install any requirements that my exist
+    requirements_file = os.path.join(test_dir, "requirements.txt")
+    if os.path.exists(requirements_file):
+        dependency = RequirementsFile("requirements.txt")
+        install_dependencies(logger, project, dependency, reactor.pybuilder_venv, "install_batch")
     extra_args = [project.expand(prop) for prop in project.get_property(TAVERN_ADDITIONAL_ARGS, [])]
     args = ["--junit-xml", f"{output_file}", test_dir] + extra_args
     if project.get_property("verbose"):
