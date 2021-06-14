@@ -4,15 +4,11 @@ from pybuilder.reactor import Reactor
 from pybuilder_integration.exec_utility import exec_command
 
 
-def install_cypress(logger: Logger, project: Project, reactor: Reactor):
-    _install_npm_tool(tool_name="cypress", logger=logger, project=project, reactor=reactor)
-
-
-def _install_npm_tool(tool_name: str, logger: Logger, project: Project, reactor: Reactor):
+def install_cypress(logger: Logger, project: Project, reactor: Reactor, work_dir):
     _verify_npm(reactor)
-    logger.info(f"Ensuring {tool_name} is installed")
-    exec_command('npm', ['install', tool_name], f'Failed to install {tool_name} - required for integration tests',
-                 f'{tool_name}_npm_install.log', project, reactor, logger,report=False)
+    logger.info(f"Ensuring cypress is installed")
+    exec_command('npm', ['install', "cypress"], f'Failed to install cypress - required for integration tests',
+                 f'{"cypress"}_npm_install.log', project, reactor, logger, report=False, working_dir=work_dir)
 
 
 def _verify_npm(reactor):

@@ -73,8 +73,8 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
         logger.info("Found package.json installing dependencies")
         tool_utility.install_npm_dependencies(work_dir, project=project, logger=logger, reactor=reactor)
     else:
-        install_cypress(project=project, logger=logger, reactor=reactor)
-    executable = project.expand_path("./node_modules/cypress/bin/cypress")
+        install_cypress(logger=logger, project=project, reactor=reactor, work_dir=work_dir)
+    executable = os.path.join(work_dir, "node_modules/cypress/bin/cypress")
     results_file, run_name = get_test_report_file(project=project,test_dir=work_dir,tool="cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
     args = ["run", "--config", f"baseUrl={target_url}", "--reporter-options",

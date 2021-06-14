@@ -14,9 +14,10 @@ class ToolInstallTestCase(ParentTestCase):
 
     def test_npm_install(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
-        pybuilder_integration.tool_utility.install_cypress(logger=mock_logger,
-                                                           project=self.project,
-                                                           reactor=reactor)
+        pybuilder_integration.tool_utility.install_cypress(logger=mock_logger, project=self.project, reactor=reactor,
+                                                           work_dir=self.tmpDir)
         self._assert_npm_install(verify_mock)
         verify_execute.assert_any_call(["npm", "install", "cypress"],
-                                          f"{self.tmpDir}/target/logs/integration/cypress_npm_install.log")
+                                          f"{self.tmpDir}/target/logs/integration/cypress_npm_install.log",
+                                       env={},
+                                       cwd=self.tmpDir)
