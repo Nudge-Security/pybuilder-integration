@@ -33,7 +33,7 @@ def exec_command(command_name,
         directory = prepare_reports_directory(project)
     else:
         directory = prepare_logs_directory(project)
-    outfile_name = "{}/{}".format(directory, log_file_name)
+    outfile_name = f"{directory}/{log_file_name}"
     res = command.run(outfile_name)
     if res.exit_code != 0:
         if raise_exception:

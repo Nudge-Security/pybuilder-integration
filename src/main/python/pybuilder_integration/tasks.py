@@ -9,7 +9,7 @@ from pybuilder.reactor import Reactor
 from pybuilder_integration import exec_utility, tool_utility
 from pybuilder_integration.artifact_manager import get_artifact_manager
 from pybuilder_integration.directory_utility import prepare_dist_directory, get_working_distribution_directory, \
-    package_artifacts, prepare_reports_directory, get_local_zip_artifact_path
+    package_artifacts, prepare_reports_directory, get_local_zip_artifact_path, prepare_logs_directory
 from pybuilder_integration.properties import *
 from pybuilder_integration.tool_utility import install_cypress
 
@@ -112,7 +112,7 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     requirements_file = os.path.join(test_dir, "requirements.txt")
     if os.path.exists(requirements_file):
         dependency = RequirementsFile(requirements_file)
-        install_dependencies(logger, project, dependency, reactor.pybuilder_venv, "install_batch")
+        install_dependencies(logger, project, dependency, reactor.pybuilder_venv, f"{prepare_logs_directory(project)}/install_tavern_pip_dependencies.log")
     extra_args = [project.expand(prop) for prop in project.get_property(TAVERN_ADDITIONAL_ARGS, [])]
     args = ["--junit-xml", f"{output_file}", test_dir] + extra_args
     if project.get_property("verbose"):
