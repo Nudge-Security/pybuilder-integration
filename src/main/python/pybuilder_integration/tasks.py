@@ -119,6 +119,8 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
         args.append("-s")
         args.append("-v")
     os.environ['TARGET'] = project.get_property(INTEGRATION_TARGET_URL)
+    os.environ['environment'] = project.get_property(ENVIRONMENT)
+    logger.info(f"Running against: {project.get_property(INTEGRATION_TARGET_URL)} ")
     ret = pytest.main(args)
     if ret != 0:
         raise BuildFailedException(f"Tavern tests failed see complete output here - {output_file}")
