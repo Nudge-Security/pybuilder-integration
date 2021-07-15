@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import pytest
 from pybuilder.core import Project, Logger, init, RequirementsFile
@@ -78,7 +79,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     results_file, run_name = get_test_report_file(project=project,test_dir=work_dir,tool="cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
     args = ["run", "--config", f"baseUrl={target_url}", "--reporter-options",
-            f"mochaFile={results_file}"]
+            f"mochaFile={results_file}" ]
     config_file_path = f'{environment}-config.json'
     if os.path.exists(os.path.join(work_dir, config_file_path)):
         args.append("--config-file")
@@ -87,6 +88,9 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     exec_utility.exec_command(command_name=executable, args=args,
                               failure_message="Failed to execute cypress tests", log_file_name='cypress_run.log',
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False)
+    # workaround but cypress output are relative to location of cypress.json so we need to collapse
+    if os.path.exists(f"{work_dir}/target"):
+        shutil.copytree(f"{work_dir}/target","./target",dirs_exist_ok=True)
     return True
 
 
