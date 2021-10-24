@@ -55,10 +55,10 @@ def package_artifacts(project: Project):
 @task(description="Package tavern artifacts for publishing in integration tests")
 def package_tavern_artifacts(project: Project):
     test_dir = project.expand_path(f"${TAVERN_TEST_DIR}")
-    tasks.package_artifacts(project, test_dir, "tavern")
+    tasks.package_artifacts(project, test_dir, "tavern", project.get_property(ROLE))
 
 
 @task(description="Package cypress artifacts for publishing in integration tests")
 def package_cypress_artifacts(project: Project):
     test_dir = project.expand_path(f"${CYPRESS_TEST_DIR}")
-    tasks.package_artifacts(project, test_dir, "cypress")
+    tasks.package_artifacts(project, test_dir, "cypress",project.get_property(ROLE))

@@ -15,5 +15,6 @@
     </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (pybuilder-integration)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Python 3.8 (pybuilder-integration) interpreter library" level="application" />
   </component>
 </module>

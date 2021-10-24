@@ -45,11 +45,11 @@ class TaskTestCase(ParentTestCase):
     def _validate_zip_file(self, file_name, tool):
         zip_location = self._get_integration_distribution_zip(tool)
         self.assertTrue(os.path.exists(zip_location), "Did not find bundled artifacts")
+        expected = ["None/",f"None/{file_name}"]
         with ZipFile(zip_location, 'r') as zipObj:
             listOfiles = zipObj.namelist()
-            self.assertEqual(len(listOfiles), 1, "Found more entries in zip than expected")
-            for elem in listOfiles:
-                self.assertEqual(file_name, elem, "Did not find expected entry")
+            self.assertEqual(len(listOfiles), len(expected), "Found more entries in zip than expected")
+            self.assertEqual(listOfiles, expected, "Did not find expected entry")
 
     def test_exec_fail(self):
         try:
@@ -68,10 +68,9 @@ class TaskTestCase(ParentTestCase):
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, "foo")
 
         pybuilder_integration.tasks._run_tavern_tests_in_dir(test_dir=os.path.join(self.tmpDir, "fake"),
-                                                             project=self.project, logger=mock_logger,
-                                                             reactor=reactor)
+                                                             logger=mock_logger, project=self.project, reactor=reactor)
         pybuilder_integration.tasks._run_cypress_tests_in_directory(work_dir=os.path.join(self.tmpDir, "fake"),
-                                                                    project=self.project, logger=mock_logger,
+                                                                    logger=mock_logger, project=self.project,
                                                                     reactor=reactor)
         self.assertEqual(before, verify_execute.call_count, "Got unexpected execution")
         self.assertEqual(before_pytest, self.pytest_main_mock.call_count, "Got unexpected execution for tavern")
@@ -126,7 +125,8 @@ class TaskTestCase(ParentTestCase):
         cypress_test_dir, tavern_test_dir = self._configure_mock_tests(distribution_directory)
         # mock downloaded tests
         latest_dir = directory_utility.get_latest_distribution_directory(self.project)
-        cypress_latest_test_dir, tavern_latest_test_dir = self._configure_mock_tests(latest_dir)
+        role = "foo"
+        cypress_latest_test_dir, tavern_latest_test_dir = self._configure_mock_tests(latest_dir,role=role)
         # mock bundled integration artifacts for tavern not cypress
         zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool='tavern', project=self.project,
                                                                           include_ending=True)

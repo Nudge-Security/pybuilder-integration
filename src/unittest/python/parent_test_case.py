@@ -95,10 +95,16 @@ class ParentTestCase(TestCase):
         # Configure mock test files
         return self._configure_mock_tests_dir(f"{self.tmpDir}/src/integrationtest/{tool}", file_name)
 
-    def _configure_mock_tests(self, distribution_directory):
+    def _configure_mock_tests(self, distribution_directory, role=None):
         tavern_test_file_name = "test.tavern.yaml"
         cypress_test_file_name = "test.json"
-        tavern_test_file_path = self._configure_mock_tests_dir(f"{distribution_directory}/tavern", tavern_test_file_name)
-        cypress_test_file_path = self._configure_mock_tests_dir(f"{distribution_directory}/cypress",
+        if role:
+            tavern_path = f"{distribution_directory}/tavern/{role}"
+            cypress_path = f"{distribution_directory}/cypress/{role}"
+        else:
+            tavern_path = f"{distribution_directory}/tavern"
+            cypress_path = f"{distribution_directory}/cypress"
+        tavern_test_file_path = self._configure_mock_tests_dir(tavern_path, tavern_test_file_name)
+        cypress_test_file_path = self._configure_mock_tests_dir(cypress_path,
                                                                    cypress_test_file_name)
         return cypress_test_file_path, tavern_test_file_path

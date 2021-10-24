@@ -1,5 +1,6 @@
 import os
 import shutil
+import tempfile
 
 
 def prepare_reports_directory(project):
@@ -48,13 +49,17 @@ def get_local_zip_artifact_path(tool, project, include_ending=False):
     return artifact
 
 
-def package_artifacts(project, test_dir, tool):
+def package_artifacts(project, test_dir, tool, role):
     # Make a copy for easy access in environment validation
     working_dir = get_working_distribution_directory(project)
     shutil.copytree(test_dir, f"{working_dir}/{tool}",dirs_exist_ok=True)
-    # package a copy for distribution
-    # zip up the test and add them to the integration test dist directory
-    base_name = get_local_zip_artifact_path(tool=tool, project=project)
-    shutil.make_archive(base_name=base_name,
-                        format="zip",
-                        root_dir=test_dir)
+    with tempfile.TemporaryDirectory() as tempdir:
+        shutil.copytree(test_dir, f"{tempdir}/{role}",dirs_exist_ok=True)
+        # package a copy for distribution
+        # zip up the test and add them to the integration test dist directory
+        base_name = get_local_zip_artifact_path(tool=tool, project=project)
+        shutil.make_archive(base_name=base_name,
+                            base_dir=role,
+                            format="zip",
+                            root_dir=tempdir)
+

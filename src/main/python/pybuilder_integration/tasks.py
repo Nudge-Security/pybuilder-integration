@@ -9,6 +9,7 @@ from pybuilder.reactor import Reactor
 
 from pybuilder_integration import exec_utility, tool_utility
 from pybuilder_integration.artifact_manager import get_artifact_manager
+from pybuilder_integration.cloudwatchlogs_utility import  CloudwatchLogs
 from pybuilder_integration.directory_utility import prepare_dist_directory, get_working_distribution_directory, \
     package_artifacts, prepare_reports_directory, get_local_zip_artifact_path, prepare_logs_directory
 from pybuilder_integration.properties import *
@@ -31,34 +32,51 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
     _run_tests_in_directory(dist_directory, logger, project, reactor)
     artifact_manager = get_artifact_manager(project=project)
     latest_directory = artifact_manager.download_artifacts(project=project, logger=logger, reactor=reactor)
-    _run_tests_in_directory(latest_directory, logger, project, reactor)
+    _run_tests_in_directory(latest_directory, logger, project, reactor, latest=True)
     if project.get_property(PROMOTE_ARTIFACT, True):
         integration_artifact_push(project=project, logger=logger, reactor=reactor)
 
 
-def _run_tests_in_directory(dist_directory, logger, project, reactor):
+def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=False):
     cypress_test_path = f"{dist_directory}/cypress"
     if os.path.exists(cypress_test_path):
-        logger.info(f"Found cypress tests - starting run")
-        _run_cypress_tests_in_directory(work_dir=cypress_test_path,
-                                        logger=logger,
-                                        project=project,
-                                        reactor=reactor)
+        logger.info(f"Found cypress tests - starting run latest: {latest}")
+        if latest:
+            for dir in os.listdir(cypress_test_path):
+                if os.path.isdir(f"{cypress_test_path}/{dir}"):
+                    logger.info(f"Running {dir}")
+                    _run_cypress_tests_in_directory(work_dir=f"{cypress_test_path}/{dir}",
+                                                    logger=logger,
+                                                    project=project,
+                                                    reactor=reactor)
+        else:
+            _run_cypress_tests_in_directory(work_dir=cypress_test_path,
+                                            logger=logger,
+                                            project=project,
+                                            reactor=reactor)
     tavern_test_path = f"{dist_directory}/tavern"
     if os.path.exists(tavern_test_path):
-        logger.info(f"Found tavern tests - starting run")
-        _run_tavern_tests_in_dir(test_dir=tavern_test_path,
-                                 logger=logger,
-                                 project=project,
-                                 reactor=reactor)
-
+        logger.info(f"Found tavern tests - starting run latest: {latest}")
+        if latest:
+            for dir in os.listdir(tavern_test_path):
+                if os.path.isdir(f"{tavern_test_path}/{dir}"):
+                    logger.info(f"Running {dir}")
+                    _run_tavern_tests_in_dir(test_dir=f"{tavern_test_path}/{dir}",
+                                             logger=logger,
+                                             project=project,
+                                             reactor=reactor,
+                                             role=os.path.basename(dir))
+        else:
+            _run_tavern_tests_in_dir(test_dir=f"{tavern_test_path}",
+                                     logger=logger,
+                                     project=project,
+                                     reactor=reactor)
 
 def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
     # Get directories with test and cypress executable
     work_dir = project.expand_path(f"${CYPRESS_TEST_DIR}")
-    if _run_cypress_tests_in_directory(work_dir=work_dir, logger=logger, project=project,
-                                       reactor=reactor):
-        package_artifacts(project, work_dir, "cypress")
+    if _run_cypress_tests_in_directory(work_dir=work_dir, logger=logger, project=project, reactor=reactor):
+        package_artifacts(project, work_dir, "cypress",project.get_property(ROLE))
 
 
 def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor):
@@ -99,10 +117,10 @@ def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
     test_dir = project.expand_path(f"${TAVERN_TEST_DIR}")
     # Run the tests in the directory
     if _run_tavern_tests_in_dir(test_dir, logger, project, reactor):
-        package_artifacts(project, test_dir, "tavern")
+        package_artifacts(project, test_dir, "tavern",project.get_property(ROLE))
 
 
-def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, reactor: Reactor):
+def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, reactor: Reactor, role=None):
     logger.info("Running tavern tests: {}".format(test_dir))
     if not os.path.exists(test_dir):
         logger.info("Skipping tavern run: no tests")
@@ -126,6 +144,8 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     os.environ['environment'] = project.get_property(ENVIRONMENT)
     logger.info(f"Running against: {project.get_property(INTEGRATION_TARGET_URL)} ")
     ret = pytest.main(args)
+    if role:
+        CloudwatchLogs(project.get_property(ENVIRONMENT), project.get_property(APPLICATION), role, logger).print_latest()
     if ret != 0:
         raise BuildFailedException(f"Tavern tests failed see complete output here - {output_file}")
     return True

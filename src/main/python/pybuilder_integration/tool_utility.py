@@ -21,3 +21,4 @@ def install_npm_dependencies(work_dir, project, logger, reactor):
     exec_command('npm', ['install'], f'Failed to install package.json - required for integration tests',
              f'package_json_npm_install.log', project, reactor, logger, report=False, working_dir=work_dir)
 
+

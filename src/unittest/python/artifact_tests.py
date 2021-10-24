@@ -102,8 +102,9 @@ class ArtifactManagerTestCase(ParentTestCase):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
         directory = f"{self.tmpDir}/artifact_packaging_test"
         cypress_test_file_path, tavern_test_file_path = self._configure_mock_tests(directory)
-        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern")
-        directory_utility.package_artifacts(self.project, os.path.dirname(cypress_test_file_path), "cypress")
+        role = "foo"
+        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern", role)
+        directory_utility.package_artifacts(self.project, os.path.dirname(cypress_test_file_path), "cypress", role)
         directory = f"{self.tmpDir}/artifact_dest"
         os.makedirs(directory)
         _unzip_downloaded_artifacts(directory_utility.prepare_dist_directory(self.project),
@@ -115,9 +116,15 @@ class ArtifactManagerTestCase(ParentTestCase):
             files = os.listdir(os.path.join(directory,pth))
             self.assertEqual(1,len(files),"Found unexpected files")
             if os.path.basename(pth) == 'tavern':
-                self.assertEqual('test.tavern.yaml',os.path.basename(files[0]),"Found unexpected file")
+                role_dir = os.listdir(os.path.join(directory,pth,files[0]))
+                self.assertEqual(1,len(role_dir),"Found unexpected files")
+                if os.path.basename(files[0]  ) == 'foo':
+                    self.assertEqual('test.tavern.yaml',os.path.basename(role_dir[0]),"Found unexpected file")
             elif os.path.basename(pth) == 'cypress':
-                self.assertEqual('test.json',os.path.basename(files[0]))
+                role_dir = os.listdir(os.path.join(directory,pth,files[0]))
+                self.assertEqual(1,len(role_dir),"Found unexpected files")
+                if os.path.basename(files[0]) == 'foo':
+                    self.assertEqual('test.json',os.path.basename(role_dir[0]))
             else:
                 self.fail(f"Found unexpected file {files}")
 
@@ -125,8 +132,8 @@ class ArtifactManagerTestCase(ParentTestCase):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
         directory = f"{self.tmpDir}/artifact_packaging_test"
         protractor_test_file_path, tavern_test_file_path = self._configure_mock_tests(directory)
-        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern")
-        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern")
+        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern","foo")
+        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern","foo")
         # we didn't fail we are good!!!
 
 
