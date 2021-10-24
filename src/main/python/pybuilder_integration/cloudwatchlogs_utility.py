@@ -27,9 +27,9 @@ class CloudwatchLogs():
     def print_latest_for_group(self, cloudwatchlogs_group_name):
         log_stream = self.find_latest_stream(cloudwatchlogs_group_name)
         events = self.get_events(cloudwatchlogs_group_name, log_stream)
-        next_token = events.get('nextForwardToken', None)
         to_print = self._process_events(events)
-        # previous_token = None
+        #         next_token = events.get('nextForwardToken', None)
+        #         previous_token = None
         # while previous_token != next_token:
         #     events = self.get_events(cloudwatchlogs_group_name, log_stream, nextToken=next_token)
         #     previous_token = next_token
