@@ -46,8 +46,8 @@ class CloudwatchLogs():
             "logStreamName": log_stream,
             "startFromHead": False
         }
-        if nextToken:
-            params['nextToken'] = nextToken
+        # if nextToken:
+        #     params['nextToken'] = nextToken
         return self._get_cloudwatch_logs_client().get_log_events(**params)
 
     def find_latest_stream(self, cloudwatchlogs_group_name):

@@ -17,7 +17,12 @@ DIRNAME = os.path.dirname(os.path.abspath(__file__))
 class DummyClient:
     def get_log_events(self,logGroupName,logStreamName,startFromHead,nextToken=None):
         return {
-            "events":[]
+            "events":[
+                {
+                    "timestamp":"fr",
+                    "message":"br"
+                }
+            ]
         }
     def describe_log_streams(self, logGroupName, descending, limit, orderBy):
         return {
