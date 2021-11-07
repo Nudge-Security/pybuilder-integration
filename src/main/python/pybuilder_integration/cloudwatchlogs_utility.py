@@ -38,7 +38,9 @@ class CloudwatchLogs():
 
         self.logger.warn(f"Cloudwatch Logs {cloudwatchlogs_group_name}")
         for event in to_print:
-            self.logger.warn("{message}".format(**event))
+            message__format = "{message}".format(**event)
+            if '/health' not in message__format:
+                self.logger.warn(message__format)
 
     def get_events(self, cloudwatchlogs_group_name, log_stream, nextToken=None):
         params = {
