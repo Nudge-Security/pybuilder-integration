@@ -143,12 +143,18 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     os.environ['TARGET'] = project.get_property(INTEGRATION_TARGET_URL)
     os.environ[ENVIRONMENT] = project.get_property(ENVIRONMENT)
     logger.info(f"Running against: {project.get_property(INTEGRATION_TARGET_URL)} ")
-    ret = pytest.main(args)
+    cache_wd = os.getcwd()
+    try:
+        os.chdir(test_dir)
+        ret = pytest.main(args)
+    finally:
+        os.chdir(cache_wd)
     if role:
         CloudwatchLogs(project.get_property(ENVIRONMENT), project.get_property(APPLICATION), role, logger).print_latest()
     if ret != 0:
         raise BuildFailedException(f"Tavern tests failed see complete output here - {output_file}")
     return True
+
 
 
 def get_test_report_file(project, test_dir,tool="tavern"):
