@@ -103,7 +103,7 @@ class TaskTestCase(ParentTestCase):
                                                                                  tool="cypress")
         args = [f"{test_directory}/node_modules/cypress/bin/cypress","run",
                 f"--config", f"baseUrl={target_url}","--reporter-options",
-                f"mochaFile={results_file}"]
+                f"mochaFile={results_file}", "--record"]
         if config_file:
             environment = self.project.get_mandatory_property(properties.ENVIRONMENT)
             args.append("--config-file")
