@@ -97,7 +97,7 @@ class TaskTestCase(ParentTestCase):
                 f"{test_dir}"
             ])
 
-    def _assert_cypress_run(self, test_directory, target_url, verify_execute, config_file=False):
+    def _assert_cypress_run(self, test_directory, target_url, verify_execute, config_file=False,env={}):
         results_file, run_name = pybuilder_integration.tasks.get_test_report_file(project=self.project,
                                                                                  test_dir=test_directory,
                                                                                  tool="cypress")
@@ -111,7 +111,7 @@ class TaskTestCase(ParentTestCase):
         verify_execute.assert_any_call(args,
                                        f"{self.tmpDir}/target/logs/integration/cypress_run.log",
                                        cwd=test_directory,
-                                       env={})
+                                       env=env)
 
     def test_verify_environment(self):
         # create mocks
@@ -120,6 +120,8 @@ class TaskTestCase(ParentTestCase):
         # Configure default properties
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
         self.project.set_property(pybuilder_integration.properties.ENVIRONMENT, "dev")
+        env_vars = {"dev": "foo"}
+        self.project.set_property(pybuilder_integration.properties.ENVIRONMENT_VARIABLES, env_vars)
         # mock working tests
         distribution_directory = directory_utility.get_working_distribution_directory(self.project)
         cypress_test_dir, tavern_test_dir = self._configure_mock_tests(distribution_directory)
@@ -145,7 +147,7 @@ class TaskTestCase(ParentTestCase):
                                  verify_execute=verify_execute, recursive=True)
         # Run against latest
         self._assert_called_tavern_execution(os.path.dirname(tavern_latest_test_dir), target_url, verify_execute)
-        self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute)
+        self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute, env=env_vars)
         # Promote local tavern archive to latest & upload local archive to versioned dir - cypress does not exist
         zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool="tavern", project=self.project,
                                                                           include_ending=True)
