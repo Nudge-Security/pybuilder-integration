@@ -139,7 +139,7 @@ class TaskTestCase(ParentTestCase):
         pybuilder_integration.tasks.verify_environment(project=self.project, logger=mock_logger, reactor=reactor)
         # Run cypress & tavern in local working directory
         self._assert_called_tavern_execution(os.path.dirname(tavern_test_dir), target_url, verify_execute)
-        self._assert_cypress_run(os.path.dirname(cypress_test_dir), target_url, verify_execute)
+        self._assert_cypress_run(os.path.dirname(cypress_test_dir), target_url, verify_execute,env=env_vars)
         # download latest
         self._assert_s3_transfer(destination=directory_utility.get_latest_zipped_distribution_directory(self.project),
                                  source=artifact_manager.get_latest_artifact_destination(logger=mock_logger,
@@ -147,7 +147,7 @@ class TaskTestCase(ParentTestCase):
                                  verify_execute=verify_execute, recursive=True)
         # Run against latest
         self._assert_called_tavern_execution(os.path.dirname(tavern_latest_test_dir), target_url, verify_execute)
-        self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute)
+        self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute, env=env_vars)
         # Promote local tavern archive to latest & upload local archive to versioned dir - cypress does not exist
         zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool="tavern", project=self.project,
                                                                           include_ending=True)
