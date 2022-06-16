@@ -147,7 +147,7 @@ class TaskTestCase(ParentTestCase):
                                  verify_execute=verify_execute, recursive=True)
         # Run against latest
         self._assert_called_tavern_execution(os.path.dirname(tavern_latest_test_dir), target_url, verify_execute)
-        self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute, env=env_vars)
+        self._assert_cypress_run(os.path.dirname(cypress_latest_test_dir), target_url, verify_execute)
         # Promote local tavern archive to latest & upload local archive to versioned dir - cypress does not exist
         zip_artifact_path = directory_utility.get_local_zip_artifact_path(tool="tavern", project=self.project,
                                                                           include_ending=True)
