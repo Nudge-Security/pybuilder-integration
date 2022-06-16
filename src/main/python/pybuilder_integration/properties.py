@@ -1,5 +1,6 @@
 INTEGRATION_ARTIFACT_BUCKET = "integration_artifact_s3_bucket"
 ENVIRONMENT = "ENVIRONMENT"
+ENVIRONMENT_VARIABLES = "cypress_environment_variables"
 ARTIFACT_MANAGER = "integration_artifact_manager"
 CYPRESS_TEST_DIR = "cypress_test_dir"
 INTEGRATION_TARGET_URL = "integration_target_url"

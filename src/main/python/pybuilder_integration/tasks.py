@@ -144,6 +144,11 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
         args.append("-v")
     os.environ['TARGET'] = project.get_property(INTEGRATION_TARGET_URL)
     os.environ[ENVIRONMENT] = project.get_property(ENVIRONMENT)
+    environment_variables = project.get_property(ENVIRONMENT_VARIABLES)
+    if environment_variables and len(environment_variables)>0:
+        for (key,value) in environment_variables.items():
+            os.environ[key] = value
+            logger.info(f"Setting environment variables {key}")
     logger.info(f"Running against: {project.get_property(INTEGRATION_TARGET_URL)} ")
     cache_wd = os.getcwd()
     try:
