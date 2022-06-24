@@ -1,3 +1,5 @@
+import os
+
 from pybuilder.core import task, Project, Logger, depends, after, init
 from pybuilder.reactor import Reactor
 
@@ -9,6 +11,9 @@ from pybuilder_integration.properties import *
 def init_plugin(project):
     project.set_property("tavern_addition_args", [])
     project.set_property_if_unset(CYPRESS_TEST_DIR, "src/integrationtest/cypress")
+    os_default = os.environ.get(INTEGRATION_ARTIFACT_BUCKET,None)
+    if os_default:
+        project.set_property_if_unset(INTEGRATION_ARTIFACT_BUCKET, os_default)
     project.set_property_if_unset(TAVERN_TEST_DIR, DEFAULT_TAVERN_TEST_DIR)
     project.plugin_depends_on("pytest")
     project.plugin_depends_on("tavern")
