@@ -22,6 +22,8 @@ class ArtifactManagerTestCase(ParentTestCase):
         expected_environment = 'ci'
         expected_bucket = 'foo'
         self.project.set_property(properties.ENVIRONMENT, expected_environment)
+        os.environ.setdefault(properties.INTEGRATION_ARTIFACT_BUCKET, expected_bucket)
+        self.project.set_property(properties.INTEGRATION_ARTIFACT_BUCKET, expected_bucket)
         self.project.set_property(properties.INTEGRATION_ARTIFACT_BUCKET, expected_bucket)
         self.validate_metadata_processing(expected_app_group, expected_app_name, expected_bucket, expected_environment,
                                           expected_role, mock_logger)
