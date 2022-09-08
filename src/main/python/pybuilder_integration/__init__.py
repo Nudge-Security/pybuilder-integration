@@ -16,6 +16,8 @@ def init_plugin(project):
         project.set_property_if_unset(INTEGRATION_ARTIFACT_BUCKET, os_default)
     project.set_property_if_unset(TAVERN_TEST_DIR, DEFAULT_TAVERN_TEST_DIR)
     project.plugin_depends_on("pytest")
+    project.plugin_depends_on("pytest")
+    project.build_depends_on('pytest-xdist')
     project.plugin_depends_on("tavern")
 
 
