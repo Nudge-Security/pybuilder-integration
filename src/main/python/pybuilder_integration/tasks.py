@@ -159,8 +159,15 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     finally:
         os.chdir(cache_wd)
     if role:
-        CloudwatchLogs(project.get_property(ENVIRONMENT), project.get_property(APPLICATION), role,
-                       logger).print_latest()
+        roles = []
+        if project.get_property(CONSOLIDATE_TESTS,False):
+            with open(f"{test_dir}/roles") as fp:
+                for line in fp:
+                    roles.append(line.strip())
+
+        for service in roles:
+            CloudwatchLogs(project.get_property(ENVIRONMENT), project.get_property(APPLICATION), service,
+                           logger).print_latest()
     if ret != 0:
         raise BuildFailedException(f"Tavern tests failed see complete output here - {output_file}")
     return True
