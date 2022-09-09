@@ -40,7 +40,7 @@ class CloudwatchLogs():
         for event in to_print:
             message__format = "{message}".format(**event)
             if '/health' not in message__format:
-                self.logger.warn(message__format)
+                self.logger.warn(f"{cloudwatchlogs_group_name} - {message__format}")
 
     def get_events(self, cloudwatchlogs_group_name, log_stream, nextToken=None):
         params = {

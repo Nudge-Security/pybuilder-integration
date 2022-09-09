@@ -106,7 +106,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     if os.path.exists(os.path.join(work_dir, config_file_path)):
         args.append("--config-file")
         args.append(config_file_path)
-    environment_variables = project.get_property(ENVIRONMENT_VARIABLES,{})
+    environment_variables = project.get_property(ENVIRONMENT_VARIABLES, {})
     logger.info(f"Running cypress on host: {target_url}")
     exec_utility.exec_command(command_name=executable, args=args,
                               failure_message="Failed to execute cypress tests", log_file_name='cypress_run.log',
@@ -147,8 +147,8 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     if project.get_property("verbose"):
         args.append("-s")
         args.append("-v")
-    if project.get_property(RUN_PARALLEL,False):
-        args.extend(['-n','auto'])
+    if project.get_property(RUN_PARALLEL, False):
+        args.extend(['-n', 'auto'])
     os.environ['TARGET'] = project.get_property(INTEGRATION_TARGET_URL)
     os.environ[ENVIRONMENT] = project.get_property(ENVIRONMENT)
     logger.info(f"Running against: {project.get_property(INTEGRATION_TARGET_URL)} ")
@@ -158,17 +158,18 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
         ret = pytest.main(args)
     finally:
         os.chdir(cache_wd)
-    if role:
-        roles = []
-        if project.get_property(CONSOLIDATE_TESTS,False):
-            with open(f"{test_dir}/roles") as fp:
-                for line in fp:
-                    roles.append(line.strip())
 
-        for service in roles:
-            CloudwatchLogs(project.get_property(ENVIRONMENT), project.get_property(APPLICATION), service,
-                           logger).print_latest()
     if ret != 0:
+        if role:
+            roles = []
+            if project.get_property(CONSOLIDATE_TESTS, False):
+                with open(f"{test_dir}/roles") as fp:
+                    for line in fp:
+                        roles.append(line.strip())
+
+            for service in roles:
+                CloudwatchLogs(project.get_property(ENVIRONMENT), project.get_property(APPLICATION), service,
+                               logger).print_latest()
         raise BuildFailedException(f"Tavern tests failed see complete output here - {output_file}")
     return True
 
