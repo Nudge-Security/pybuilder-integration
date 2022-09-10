@@ -155,6 +155,7 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     cache_wd = os.getcwd()
     try:
         os.chdir(test_dir)
+        logger.debug(f"Running args: {args} ")
         ret = pytest.main(args)
     finally:
         os.chdir(cache_wd)
