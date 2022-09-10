@@ -183,11 +183,13 @@ def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Lo
             logger.warn(f"Unexpected file name in downloaded artifacts {file}")
     if project.get_property(CONSOLIDATE_TESTS,False):
         consolidated_folder = f"{destination}/tavern/consolidated"
+        logger.debug(f"Consolidating test files into {consolidated_folder}")
         os.makedirs(consolidated_folder, exist_ok=True)
-        # clear contents
+        logger.debug(f"Creating role file for log retrieval {consolidated_folder}/roles")
         open(f"{consolidated_folder}/roles", 'w').close()
         for dirn in os.listdir(f"{destination}/tavern"):
             if "consolidated" != dirn:
+                logger.debug(f"Consolidating directory: {dirn}")
                 shutil.copytree(f"{destination}/tavern/{dirn}", consolidated_folder, dirs_exist_ok=True)
                 shutil.rmtree(f"{destination}/tavern/{dirn}")
                 with open(f"{consolidated_folder}/roles") as fp:
