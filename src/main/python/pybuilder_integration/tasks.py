@@ -6,6 +6,7 @@ from pybuilder.core import Project, Logger, init, RequirementsFile
 from pybuilder.errors import BuildFailedException
 from pybuilder.install_utils import install_dependencies
 from pybuilder.reactor import Reactor
+from pybuilder.utils import Timer
 
 from pybuilder_integration import exec_utility, tool_utility
 from pybuilder_integration.artifact_manager import get_artifact_manager
@@ -39,6 +40,7 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
 
 
 def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=False):
+    total_time = Timer.start()
     cypress_test_path = f"{dist_directory}/cypress"
     if os.path.exists(cypress_test_path):
         logger.info(f"Found cypress tests - starting run latest: {latest}")
@@ -55,6 +57,9 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=Fal
                                             logger=logger,
                                             project=project,
                                             reactor=reactor)
+    total_time.stop()
+    logger.info(f"Ran Cypress tests: {total_time.get_millis()}")
+    total_time = Timer.start()
     tavern_test_path = f"{dist_directory}/tavern"
     if os.path.exists(tavern_test_path):
         logger.info(f"Found tavern tests - starting run latest: {latest}")
@@ -72,6 +77,8 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=Fal
                                      logger=logger,
                                      project=project,
                                      reactor=reactor)
+    total_time.stop()
+    logger.info(f"Ran Tavern tests: {total_time.get_millis()}")
 
 
 def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
@@ -82,6 +89,7 @@ def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
 
 
 def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor):
+    total_time = Timer.start()
     target_url = project.get_mandatory_property(INTEGRATION_TARGET_URL)
     environment = project.get_mandatory_property(ENVIRONMENT)
     if not os.path.exists(work_dir):
@@ -95,6 +103,9 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
         tool_utility.install_npm_dependencies(work_dir, project=project, logger=logger, reactor=reactor)
     else:
         install_cypress(logger=logger, project=project, reactor=reactor, work_dir=work_dir)
+    total_time.stop()
+    logger.info(f"Configured Cypress Environment: {total_time.get_millis()}")
+    total_time = Timer.start()
     executable = os.path.join(work_dir, "node_modules/cypress/bin/cypress")
     results_file, run_name = get_test_report_file(project=project, test_dir=work_dir, tool="cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
@@ -115,6 +126,8 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     # workaround but cypress output are relative to location of cypress.json so we need to collapse
     if os.path.exists(f"{work_dir}/target"):
         shutil.copytree(f"{work_dir}/target", "./target", dirs_exist_ok=True)
+    total_time.stop()
+    logger.info(f"Ran Cypress Tests: {total_time.get_millis()}")
     return True
 
 
