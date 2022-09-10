@@ -192,7 +192,7 @@ def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Lo
                 logger.debug(f"Consolidating directory: {dirn}")
                 shutil.copytree(f"{destination}/tavern/{dirn}", consolidated_folder, dirs_exist_ok=True)
                 shutil.rmtree(f"{destination}/tavern/{dirn}")
-                with open(f"{consolidated_folder}/roles") as fp:
+                with open(f"{consolidated_folder}/roles", "a") as fp:
                     fp.writelines(dirn)
     return destination
 
