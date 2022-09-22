@@ -188,6 +188,8 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
                 with open(f"{test_dir}/roles") as fp:
                     for line in fp:
                         roles.append(line.strip())
+            else:
+                roles.append(role)
 
             for service in roles:
                 CloudwatchLogs(project.get_property(ENVIRONMENT), project.get_property(APPLICATION), service,
