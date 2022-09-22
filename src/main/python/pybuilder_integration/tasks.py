@@ -40,6 +40,11 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
 
 
 def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=False):
+    _run_tavern_tests_in_dist_dir(dist_directory, latest, logger, project, reactor)
+    _run_cypress_tests_in_dist_dir(dist_directory, latest, logger, project, reactor)
+
+
+def _run_cypress_tests_in_dist_dir(dist_directory, latest, logger, project, reactor):
     total_time = Timer.start()
     cypress_test_path = f"{dist_directory}/cypress"
     if os.path.exists(cypress_test_path):
@@ -59,6 +64,9 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=Fal
                                             reactor=reactor)
     total_time.stop()
     logger.info(f"Ran Cypress tests: {total_time.get_millis()}")
+
+
+def _run_tavern_tests_in_dist_dir(dist_directory, latest, logger, project, reactor):
     total_time = Timer.start()
     tavern_test_path = f"{dist_directory}/tavern"
     if os.path.exists(tavern_test_path):
