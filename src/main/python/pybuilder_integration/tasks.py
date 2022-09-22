@@ -39,22 +39,6 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
 
 
 def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=False):
-    cypress_test_path = f"{dist_directory}/cypress"
-    if os.path.exists(cypress_test_path):
-        logger.info(f"Found cypress tests - starting run latest: {latest}")
-        if latest:
-            for dir in os.listdir(cypress_test_path):
-                if os.path.isdir(f"{cypress_test_path}/{dir}"):
-                    logger.info(f"Running {dir}")
-                    _run_cypress_tests_in_directory(work_dir=f"{cypress_test_path}/{dir}",
-                                                    logger=logger,
-                                                    project=project,
-                                                    reactor=reactor)
-        else:
-            _run_cypress_tests_in_directory(work_dir=cypress_test_path,
-                                            logger=logger,
-                                            project=project,
-                                            reactor=reactor)
     tavern_test_path = f"{dist_directory}/tavern"
     if os.path.exists(tavern_test_path):
         logger.info(f"Found tavern tests - starting run latest: {latest}")
@@ -72,6 +56,22 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=Fal
                                      logger=logger,
                                      project=project,
                                      reactor=reactor)
+    cypress_test_path = f"{dist_directory}/cypress"
+    if os.path.exists(cypress_test_path):
+        logger.info(f"Found cypress tests - starting run latest: {latest}")
+        if latest:
+            for dir in os.listdir(cypress_test_path):
+                if os.path.isdir(f"{cypress_test_path}/{dir}"):
+                    logger.info(f"Running {dir}")
+                    _run_cypress_tests_in_directory(work_dir=f"{cypress_test_path}/{dir}",
+                                                    logger=logger,
+                                                    project=project,
+                                                    reactor=reactor)
+        else:
+            _run_cypress_tests_in_directory(work_dir=cypress_test_path,
+                                            logger=logger,
+                                            project=project,
+                                            reactor=reactor)
 
 
 def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
