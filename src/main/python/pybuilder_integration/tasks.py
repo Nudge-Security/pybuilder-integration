@@ -121,10 +121,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
             f"mochaFile={results_file}"]
     if project.get_property("record_cypress", True):
         args.append('--record')
-    config_file_path = f'{environment}-config.json'
-    if os.path.exists(os.path.join(work_dir, config_file_path)):
-        args.append("--config-file")
-        args.append(config_file_path)
+    _add_config_file(args, environment, work_dir)
     environment_variables = project.get_property(ENVIRONMENT_VARIABLES, {})
     logger.info(f"Running cypress on host: {target_url}")
     exec_utility.exec_command(command_name=executable, args=args,
@@ -137,6 +134,15 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     total_time.stop()
     logger.info(f"Ran Cypress Tests: {total_time.get_millis()}")
     return True
+
+
+def _add_config_file(args, environment, work_dir):
+    for ending in ['ts','json']:
+        config_file_path = f'{environment}-config.{ending}'
+        if os.path.exists(os.path.join(work_dir, config_file_path)):
+            args.append("--config-file")
+            args.append(config_file_path)
+            return
 
 
 def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
