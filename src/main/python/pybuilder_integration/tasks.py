@@ -38,13 +38,20 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
         integration_artifact_push(project=project, logger=logger, reactor=reactor)
 
 
+def _should_run_latest(dir, project):
+    if project.get_property(SHOULD_SKIP_LATEST, False):
+        if project.get_property(ROLE) == dir:
+            return False
+    return True
+
+
 def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=False):
     tavern_test_path = f"{dist_directory}/tavern"
     if os.path.exists(tavern_test_path):
         logger.info(f"Found tavern tests - starting run latest: {latest}")
         if latest:
             for dir in os.listdir(tavern_test_path):
-                if os.path.isdir(f"{tavern_test_path}/{dir}"):
+                if os.path.isdir(f"{tavern_test_path}/{dir}") and _should_run_latest(dir, project):
                     logger.info(f"Running {dir}")
                     _run_tavern_tests_in_dir(test_dir=f"{tavern_test_path}/{dir}",
                                              logger=logger,
@@ -61,7 +68,7 @@ def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=Fal
         logger.info(f"Found cypress tests - starting run latest: {latest}")
         if latest:
             for dir in os.listdir(cypress_test_path):
-                if os.path.isdir(f"{cypress_test_path}/{dir}"):
+                if os.path.isdir(f"{cypress_test_path}/{dir}") and _should_run_latest(dir, project):
                     logger.info(f"Running {dir}")
                     _run_cypress_tests_in_directory(work_dir=f"{cypress_test_path}/{dir}",
                                                     logger=logger,
