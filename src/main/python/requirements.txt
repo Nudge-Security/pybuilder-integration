@@ -1,3 +1,3 @@
 pytest
-tavern
+tavern==1.25.2
 boto3

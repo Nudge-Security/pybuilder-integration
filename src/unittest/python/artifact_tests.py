@@ -111,7 +111,7 @@ class ArtifactManagerTestCase(ParentTestCase):
         os.makedirs(directory)
         _unzip_downloaded_artifacts(directory_utility.prepare_dist_directory(self.project),
                                     directory,
-                                    mock_logger)
+                                    mock_logger, self.project)
         listdir = os.listdir(directory)
         self.assertEqual(2,len(listdir) ,"Found unexpected directories")
         for pth in listdir:

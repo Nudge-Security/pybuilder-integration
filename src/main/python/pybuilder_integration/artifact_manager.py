@@ -9,8 +9,7 @@ from pybuilder.reactor import Reactor
 from pybuilder_integration import exec_utility
 from pybuilder_integration.directory_utility import get_latest_distribution_directory, \
     get_latest_zipped_distribution_directory
-from pybuilder_integration.properties import INTEGRATION_ARTIFACT_BUCKET, ENVIRONMENT, ROLE, APPLICATION, \
-    APPLICATION_GROUP, ARTIFACT_MANAGER
+from pybuilder_integration.properties import *
 
 
 class ArtifactManager:
@@ -51,7 +50,7 @@ class S3ArtifactManager(ArtifactManager):
                           project=project,
                           logger=logger,
                           reactor=reactor)
-        return _unzip_downloaded_artifacts(zipped_directory, get_latest_distribution_directory(project), logger)
+        return _unzip_downloaded_artifacts(zipped_directory, get_latest_distribution_directory(project), logger, project)
 
     @staticmethod
     def _s3_transfer(source, destination, project, reactor, logger, recursive=True):
@@ -171,7 +170,7 @@ def extract_application_role(logger, project):
     return app_group, app_name, role
 
 
-def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Logger) -> str:
+def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Logger, project:Project) -> str:
     for file in os.listdir(dir_with_zips):
         # expect {tool}-{self.project.name}.zip
         if os.path.basename(file).find("tavern") >= 0:
@@ -182,6 +181,19 @@ def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Lo
                                   format="zip")
         else:
             logger.warn(f"Unexpected file name in downloaded artifacts {file}")
+    if project.get_property(CONSOLIDATE_TESTS,False):
+        consolidated_folder = f"{destination}/tavern/consolidated"
+        logger.debug(f"Consolidating test files into {consolidated_folder}")
+        os.makedirs(consolidated_folder, exist_ok=True)
+        logger.debug(f"Creating role file for log retrieval {consolidated_folder}/roles")
+        open(f"{consolidated_folder}/roles", 'w').close()
+        for dirn in os.listdir(f"{destination}/tavern"):
+            if "consolidated" != dirn:
+                logger.debug(f"Consolidating directory: {dirn}")
+                shutil.copytree(f"{destination}/tavern/{dirn}", consolidated_folder, dirs_exist_ok=True)
+                shutil.rmtree(f"{destination}/tavern/{dirn}")
+                with open(f"{consolidated_folder}/roles", "a") as fp:
+                    fp.writelines(dirn)
     return destination
 
 
