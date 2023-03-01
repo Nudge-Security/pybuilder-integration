@@ -129,7 +129,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
             f"mochaFile={results_file}"]
     if project.get_property("record_cypress", True):
         args.append('--record')
-    _add_config_file(project, args, environment, work_dir)
+    _add_config_file(logger, project, args, environment, work_dir)
     environment_variables = project.get_property(ENVIRONMENT_VARIABLES, {})
     logger.info(f"Running cypress on host: {target_url}")
     exec_utility.exec_command(command_name=executable, args=args,
@@ -144,22 +144,26 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     return True
 
 
-def _add_config_file(project, args, environment, work_dir):
+def _add_config_file(logger, project, args, environment, work_dir):
 
     # Environment variable override
     cypress_config_file_override = os.environ.get('CYPRESS_CONFIG_FILE')
     if cypress_config_file_override:
+        logger.info(f"Found CYPRESS_CONFIG_FILE environment variable: {cypress_config_file_override}")
         project.set_property(CYPRESS_CONFIG_FILE, cypress_config_file_override)
 
     # Check project for config file else test file system for environment named file
     cypress_config_file = project.get_property(CYPRESS_CONFIG_FILE)
     if cypress_config_file and os.path.exists(os.path.join(work_dir, cypress_config_file)):
+        logger.info(f"Setting --config-file parameter from project to {cypress_config_file}")
         args.append("--config-file")
         args.append(cypress_config_file)
     else:
+        logger.info(f"Attempting to discover cypress config file from environment: {environment}")
         for ending in ['ts', 'json']:
             config_file_path = f'{environment}-config.{ending}'
             if os.path.exists(os.path.join(work_dir, config_file_path)):
+                logger.info(f"Setting --config-file parameter from env to {config_file_path}")
                 args.append("--config-file")
                 args.append(config_file_path)
                 return
