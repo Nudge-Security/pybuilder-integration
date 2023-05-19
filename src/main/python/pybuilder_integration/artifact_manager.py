@@ -116,7 +116,7 @@ class S3ArtifactManager(ArtifactManager):
                                          project=project,
                                          reactor=reactor,
                                          logger=logger,
-                                         raise_exception=False,
+                                         raise_exception=True,
                                          report=False)
 
 
