@@ -2,7 +2,7 @@ import os
 import shutil
 
 import pytest
-from pybuilder.core import Project, Logger, init, RequirementsFile
+from pybuilder.core import Project, Logger, RequirementsFile
 from pybuilder.errors import BuildFailedException
 from pybuilder.install_utils import install_dependencies
 from pybuilder.reactor import Reactor
@@ -11,7 +11,7 @@ from pybuilder.utils import Timer
 from pybuilder_integration import exec_utility, tool_utility
 from pybuilder_integration.artifact_manager import get_artifact_manager
 from pybuilder_integration.cloudwatchlogs_utility import CloudwatchLogs
-from pybuilder_integration.directory_utility import prepare_dist_directory, get_working_distribution_directory, \
+from pybuilder_integration.directory_utility import get_working_distribution_directory, \
     package_artifacts, prepare_reports_directory, get_local_zip_artifact_path, prepare_logs_directory
 from pybuilder_integration.properties import *
 from pybuilder_integration.tool_utility import install_cypress
@@ -24,7 +24,8 @@ def integration_artifact_push(project: Project, logger: Logger, reactor: Reactor
         artifact_file = get_local_zip_artifact_path(tool=tool, project=project, include_ending=True)
         if os.path.exists(artifact_file):
             logger.info(
-                f"Starting upload of integration artifact: {os.path.basename(artifact_file)} to: {manager.friendly_name}")
+              f"Starting upload of integration artifact: {os.path.basename(artifact_file)} to: {manager.friendly_name}"
+            )
             manager.upload(file=artifact_file, project=project, logger=logger, reactor=reactor)
 
 
@@ -39,9 +40,9 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
         integration_artifact_push(project=project, logger=logger, reactor=reactor)
 
 
-def _should_run_latest(dir, project):
+def _should_run_latest(test_dir, project):
     if project.get_property(SHOULD_SKIP_LATEST, False):
-        if project.get_property(ROLE) == dir:
+        if project.get_property(ROLE) == test_dir:
             return False
     return True
 
@@ -57,10 +58,10 @@ def _run_cypress_tests_in_dist_dir(dist_directory, latest, logger, project, reac
     if os.path.exists(cypress_test_path):
         logger.info(f"Found cypress tests - starting run latest: {latest}")
         if latest:
-            for dir in os.listdir(cypress_test_path) :
-                if os.path.isdir(f"{cypress_test_path}/{dir}")and _should_run_latest(dir, project):
-                    logger.info(f"Running {dir}")
-                    _run_cypress_tests_in_directory(work_dir=f"{cypress_test_path}/{dir}",
+            for test_dir in os.listdir(cypress_test_path):
+                if os.path.isdir(f"{cypress_test_path}/{test_dir}") and _should_run_latest(test_dir, project):
+                    logger.info(f"Running {test_dir}")
+                    _run_cypress_tests_in_directory(work_dir=f"{cypress_test_path}/{test_dir}",
                                                     logger=logger,
                                                     project=project,
                                                     reactor=reactor)
@@ -79,14 +80,14 @@ def _run_tavern_tests_in_dist_dir(dist_directory, latest, logger, project, react
     if os.path.exists(tavern_test_path):
         logger.info(f"Found tavern tests - starting run latest: {latest}")
         if latest:
-            for dir in os.listdir(tavern_test_path):
-                if os.path.isdir(f"{tavern_test_path}/{dir}") and _should_run_latest(dir, project):
-                    logger.info(f"Running {dir}")
-                    _run_tavern_tests_in_dir(test_dir=f"{tavern_test_path}/{dir}",
+            for tavern_dir in os.listdir(tavern_test_path):
+                if os.path.isdir(f"{tavern_test_path}/{tavern_dir}") and _should_run_latest(tavern_dir, project):
+                    logger.info(f"Running {tavern_dir}")
+                    _run_tavern_tests_in_dir(test_dir=f"{tavern_test_path}/{tavern_dir}",
                                              logger=logger,
                                              project=project,
                                              reactor=reactor,
-                                             role=os.path.basename(dir))
+                                             role=os.path.basename(tavern_dir))
         else:
             _run_tavern_tests_in_dir(test_dir=f"{tavern_test_path}",
                                      logger=logger,
@@ -128,14 +129,14 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
             f"mochaFile={results_file}"]
     if project.get_property("record_cypress", True):
         args.append('--record')
-    _add_config_file(args, environment, work_dir)
+    _add_config_file(logger, project, args, environment, work_dir)
     environment_variables = project.get_property(ENVIRONMENT_VARIABLES, {})
     logger.info(f"Running cypress on host: {target_url}")
     exec_utility.exec_command(command_name=executable, args=args,
                               failure_message="Failed to execute cypress tests", log_file_name='cypress_run.log',
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False,
                               env_vars=environment_variables)
-    # workaround but cypress output are relative to location of cypress.json so we need to collapse
+    # workaround but cypress output are relative to location of cypress.json, so we need to collapse
     if os.path.exists(f"{work_dir}/target"):
         shutil.copytree(f"{work_dir}/target", "./target", dirs_exist_ok=True)
     total_time.stop()
@@ -143,13 +144,29 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     return True
 
 
-def _add_config_file(args, environment, work_dir):
-    for ending in ['ts','json']:
-        config_file_path = f'{environment}-config.{ending}'
-        if os.path.exists(os.path.join(work_dir, config_file_path)):
-            args.append("--config-file")
-            args.append(config_file_path)
-            return
+def _add_config_file(logger, project, args, environment, work_dir):
+
+    # Environment variable override
+    cypress_config_file_override = os.environ.get('CYPRESS_CONFIG_FILE')
+    if cypress_config_file_override:
+        logger.info(f"Found CYPRESS_CONFIG_FILE environment variable: {cypress_config_file_override}")
+        project.set_property(CYPRESS_CONFIG_FILE, cypress_config_file_override)
+
+    # Check project for config file else test file system for environment named file
+    cypress_config_file = project.get_property(CYPRESS_CONFIG_FILE)
+    if cypress_config_file and os.path.exists(os.path.join(work_dir, cypress_config_file)):
+        logger.info(f"Setting --config-file parameter from project to {cypress_config_file}")
+        args.append("--config-file")
+        args.append(cypress_config_file)
+    else:
+        logger.info(f"Attempting to discover cypress config file from environment: {environment}")
+        for ending in ['ts', 'json']:
+            config_file_path = f'{environment}-config.{ending}'
+            if os.path.exists(os.path.join(work_dir, config_file_path)):
+                logger.info(f"Setting --config-file parameter from env to {config_file_path}")
+                args.append("--config-file")
+                args.append(config_file_path)
+                return
 
 
 def verify_tavern(project: Project, logger: Logger, reactor: Reactor):
