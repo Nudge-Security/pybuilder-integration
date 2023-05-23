@@ -59,9 +59,10 @@ def _run_cypress_tests_in_dist_dir(dist_directory, latest, logger, project, reac
         logger.info(f"Found cypress tests - starting run latest: {latest}")
         if latest:
             for test_dir in os.listdir(cypress_test_path):
-                if os.path.isdir(f"{cypress_test_path}/{test_dir}") and _should_run_latest(test_dir, project):
-                    logger.info(f"Running {test_dir}")
-                    _run_cypress_tests_in_directory(work_dir=f"{cypress_test_path}/{test_dir}",
+                directory_to_test = f"{cypress_test_path}/{test_dir}"
+                if os.path.isdir(directory_to_test) and _should_run_latest(test_dir, project):
+                    logger.info(f"Running {directory_to_test}")
+                    _run_cypress_tests_in_directory(work_dir=directory_to_test,
                                                     logger=logger,
                                                     project=project,
                                                     reactor=reactor)
