@@ -113,6 +113,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
         logger.info("Skipping cypress run: no tests")
         return False
     logger.info(f"Found {len(os.listdir(work_dir))} files in cypress test directory")
+    logger.debug(f"Files: {os.listdir(work_dir)} ")
     # Validate NPM install and Install cypress
     package_json = os.path.join(work_dir, "package.json")
     if os.path.exists(package_json):
