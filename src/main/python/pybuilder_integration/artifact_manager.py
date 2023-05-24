@@ -59,7 +59,6 @@ class S3ArtifactManager(ArtifactManager):
         #  aws s3 cp myDir s3://mybucket/ --recursive
         args = [
             's3',
-            "--debug" if project.get_property("verbose",False) else "",
             'cp',
             source,
             destination
@@ -73,7 +72,7 @@ class S3ArtifactManager(ArtifactManager):
                                   project=project,
                                   reactor=reactor,
                                   logger=logger,
-                                  report=True)
+                                  report=False)
 
     @staticmethod
     def verify_aws_cli(reactor):

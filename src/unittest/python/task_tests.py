@@ -101,8 +101,13 @@ class TaskTestCase(ParentTestCase):
         results_file, run_name = pybuilder_integration.tasks.get_test_report_file(project=self.project,
                                                                                  test_dir=test_directory,
                                                                                  tool="cypress")
+        test_report_folder = directory_utility.prepare_reports_directory(project=self.project)
         args = [f"{test_directory}/node_modules/cypress/bin/cypress","run",
-                f"--config", f"baseUrl={target_url}","--reporter-options",
+                f"--config",
+                f"baseUrl={target_url},"
+                f"videosFolder={test_report_folder}/videos,"
+                f"screenshotsFolder={test_report_folder}/screenshots"
+                "--reporter-options",
                 f"mochaFile={results_file}", "--record"]
         if config_file:
             environment = self.project.get_mandatory_property(properties.ENVIRONMENT)
