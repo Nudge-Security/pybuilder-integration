@@ -8,7 +8,7 @@ from pybuilder.install_utils import install_dependencies
 from pybuilder.reactor import Reactor
 from pybuilder.utils import Timer
 
-from pybuilder_integration import exec_utility, tool_utility
+from pybuilder_integration import exec_utility, tool_utility, directory_utility
 from pybuilder_integration.artifact_manager import get_artifact_manager
 from pybuilder_integration.cloudwatchlogs_utility import CloudwatchLogs
 from pybuilder_integration.directory_utility import get_working_distribution_directory, \
@@ -133,7 +133,12 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     executable = os.path.join(work_dir, "node_modules/cypress/bin/cypress")
     results_file, run_name = get_test_report_file(project=project, test_dir=work_dir, tool="cypress")
     # Run the actual tests against the baseURL provided by ${integration_target}
-    args = ["run", "--config", f"baseUrl={target_url}", "--reporter-options",
+    test_report_folder = directory_utility.prepare_reports_directory(project)
+    args = ["run", "--config",
+            f"baseUrl={target_url},"
+            f"videosFolder={test_report_folder}/videos,"
+            f"screenshotsFolder={test_report_folder}/screenshots,"
+            "--reporter-options",
             f"mochaFile={results_file}"]
     if project.get_property("record_cypress", True):
         args.append('--record')
@@ -237,6 +242,6 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
 
 
 def get_test_report_file(project, test_dir, tool="tavern"):
-    run_name = os.path.basename(os.path.realpath(os.path.join(test_dir, os.pardir)))
+    run_name = os.path.basename(test_dir)
     output_file = os.path.join(prepare_reports_directory(project), f"{tool}-{run_name}.out.xml")
     return output_file, run_name
