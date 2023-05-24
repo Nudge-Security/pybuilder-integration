@@ -73,7 +73,7 @@ class S3ArtifactManager(ArtifactManager):
                                   project=project,
                                   reactor=reactor,
                                   logger=logger,
-                                  report=False)
+                                  report=True)
 
     @staticmethod
     def verify_aws_cli(reactor):
