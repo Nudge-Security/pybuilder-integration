@@ -104,13 +104,17 @@ class S3ArtifactManager(ArtifactManager):
 
     def does_bucket_exist(self, logger, project, reactor):
         app_group, app_name, bucket, environment, role = get_project_metadata(logger, project)
+
+        args = [
+            's3api',
+            'head-bucket',
+            '--bucket',
+            bucket
+        ]
+        if project.get_property("verbose", False):
+            args.append('--debug')
         return exec_utility.exec_command(command_name='aws',
-                                         args=[
-                                             's3api',
-                                             'head-bucket',
-                                             '--bucket',
-                                             bucket
-                                         ],
+                                         args=args,
                                          failure_message=f"Failed to find bucket",
                                          log_file_name='s3-head-bucket',
                                          project=project,

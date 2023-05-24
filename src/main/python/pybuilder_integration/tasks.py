@@ -48,6 +48,7 @@ def _should_run_latest(test_dir, project):
 
 
 def _run_tests_in_directory(dist_directory, logger, project, reactor, latest=False):
+    logger.debug(f"Run tests in directory: {os.listdir(dist_directory)} ")
     _run_tavern_tests_in_dist_dir(dist_directory, latest, logger, project, reactor)
     _run_cypress_tests_in_dist_dir(dist_directory, latest, logger, project, reactor)
 
@@ -56,6 +57,8 @@ def _run_cypress_tests_in_dist_dir(dist_directory, latest, logger, project, reac
     total_time = Timer.start()
     cypress_test_path = f"{dist_directory}/cypress"
     if os.path.exists(cypress_test_path):
+        logger.debug(f"Run cypress tests in directory: {cypress_test_path} ")
+        logger.debug(f"Run cypress tests in directory files: {os.listdir(cypress_test_path)} ")
         logger.info(f"Found cypress tests - starting run latest: {latest}")
         if latest:
             for test_dir in os.listdir(cypress_test_path):
@@ -80,11 +83,14 @@ def _run_tavern_tests_in_dist_dir(dist_directory, latest, logger, project, react
     tavern_test_path = f"{dist_directory}/tavern"
     if os.path.exists(tavern_test_path):
         logger.info(f"Found tavern tests - starting run latest: {latest}")
+        logger.debug(f"Run tavern tests in directory: {tavern_test_path} ")
+        logger.debug(f"Run tavern tests in directory files: {os.listdir(tavern_test_path)} ")
         if latest:
             for tavern_dir in os.listdir(tavern_test_path):
-                if os.path.isdir(f"{tavern_test_path}/{tavern_dir}") and _should_run_latest(tavern_dir, project):
-                    logger.info(f"Running {tavern_dir}")
-                    _run_tavern_tests_in_dir(test_dir=f"{tavern_test_path}/{tavern_dir}",
+                tavern_test_direcotry = f"{tavern_test_path}/{tavern_dir}"
+                if os.path.isdir(tavern_test_direcotry) and _should_run_latest(tavern_dir, project):
+                    logger.info(f"Running {tavern_test_direcotry}")
+                    _run_tavern_tests_in_dir(test_dir=tavern_test_direcotry,
                                              logger=logger,
                                              project=project,
                                              reactor=reactor,
