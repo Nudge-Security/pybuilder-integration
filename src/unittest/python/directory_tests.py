@@ -23,9 +23,9 @@ class DirectoryUtilityTestCase(ParentTestCase):
         dist_dir = self.project.expand_path("$dir_dist")
         self.assertTrue(os.path.exists(f"{dist_dir}/integration"), "Failed to create dist directory")
         pybuilder_integration.directory_utility.get_latest_distribution_directory(project=self.project)
-        self.assertTrue(os.path.exists(f"{dist_dir}/integration/LATEST/"), "Failed to create dist directory")
+        self.assertTrue(os.path.exists(f"{dist_dir}/integration/LATEST-unit-test/"), "Failed to create dist directory")
         pybuilder_integration.directory_utility.get_latest_zipped_distribution_directory(project=self.project)
-        self.assertTrue(os.path.exists(f"{dist_dir}/integration/LATEST/zipped/"), "Failed to create dist directory")
+        self.assertTrue(os.path.exists(f"{dist_dir}/integration/LATEST-unit-test/zipped/"), "Failed to create dist directory")
         pybuilder_integration.directory_utility.get_working_distribution_directory(project=self.project)
         self.assertTrue(os.path.exists(f"{dist_dir}/integration/working"), "Failed to create dist directory")
 

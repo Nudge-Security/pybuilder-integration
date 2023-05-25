@@ -3,6 +3,7 @@ import shutil
 import tempfile
 
 
+
 def prepare_reports_directory(project):
     return prepare_directory("$dir_reports", project)
 
@@ -34,12 +35,16 @@ def get_working_distribution_directory(project):
 
 def get_latest_distribution_directory(project):
     dist_directory = prepare_dist_directory(project)
-    return _ensure_directory_exists(f"{dist_directory}/LATEST")
+    from pybuilder_integration import ENVIRONMENT
+    environment = project.get_mandatory_property(ENVIRONMENT)
+    return _ensure_directory_exists(f"{dist_directory}/LATEST-{environment}")
 
 
 def get_latest_zipped_distribution_directory(project):
     dist_directory = prepare_dist_directory(project)
-    return _ensure_directory_exists(f"{dist_directory}/LATEST/zipped")
+    from pybuilder_integration import ENVIRONMENT
+    environment = project.get_mandatory_property(ENVIRONMENT)
+    return _ensure_directory_exists(f"{dist_directory}/LATEST-{environment}/zipped")
 
 
 def get_local_zip_artifact_path(tool, project, include_ending=False):
