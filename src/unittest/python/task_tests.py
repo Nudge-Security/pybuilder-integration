@@ -106,7 +106,7 @@ class TaskTestCase(ParentTestCase):
                 f"--config",
                 f"baseUrl={target_url},"
                 f"videosFolder={test_report_folder}/videos,"
-                f"screenshotsFolder={test_report_folder}/screenshots"
+                f"screenshotsFolder={test_report_folder}/screenshots",
                 "--reporter-options",
                 f"mochaFile={results_file}", "--record"]
         if config_file:

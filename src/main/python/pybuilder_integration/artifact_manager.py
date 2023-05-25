@@ -121,7 +121,7 @@ class S3ArtifactManager(ArtifactManager):
                                          reactor=reactor,
                                          logger=logger,
                                          raise_exception=True,
-                                         report=True)
+                                         report=False)
 
 
 artifact_managers: Dict[str, S3ArtifactManager] = {}

@@ -137,7 +137,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     args = ["run", "--config",
             f"baseUrl={target_url},"
             f"videosFolder={test_report_folder}/videos,"
-            f"screenshotsFolder={test_report_folder}/screenshots"
+            f"screenshotsFolder={test_report_folder}/screenshots",
             "--reporter-options",
             f"mochaFile={results_file}"]
     if project.get_property("record_cypress", True):
