@@ -25,6 +25,7 @@ def init_plugin(project):
                   f"\t2. Run integration tests found in 'LATEST-{ENVIRONMENT}' managed by ${ARTIFACT_MANAGER}\n"
                   f"\t3. Promote current build integration tests to 'LATEST-{ENVIRONMENT}' (disable with ${PROMOTE_ARTIFACT})\n"
                   f"\t${INTEGRATION_TARGET_URL} - (required) Full URL target for tests\n"
+                  f"\t${INTEGRATION_PUBLIC_TARGET_URL} - (required) Full public URL target for tests\n"
                   f"\t${ENVIRONMENT} - (required) Environment that is being tested (ci/prod)\n"
                   f"\t${PROMOTE_ARTIFACT} - Promote integration tests to LATEST-${ENVIRONMENT} (default TRUE)\n"
       )
@@ -34,6 +35,7 @@ def verify_environment(project: Project, logger: Logger, reactor: Reactor):
 
 @task(description="Run integration tests using a cypress spec. Requires NPM installed.\n"
                   f"\t{INTEGRATION_TARGET_URL} - (required) Full URL target for cypress tests\n"
+                  f"\t{INTEGRATION_PUBLIC_TARGET_URL} - (required) Full public URL target for cypress tests\n"
                   f"\t{CYPRESS_TEST_DIR} - directory for test specification (src/integrationtest/cypress)\n"
       )
 def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
