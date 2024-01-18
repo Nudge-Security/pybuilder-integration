@@ -214,8 +214,10 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
     if project.get_property(RUN_PARALLEL, False):
         args.extend(['-n', 'auto'])
     os.environ['TARGET'] = project.get_property(INTEGRATION_TARGET_URL)
+    os.environ['PUBLIC_TARGET'] = project.get_property(INTEGRATION_PUBLIC_TARGET_URL)
     os.environ[ENVIRONMENT] = project.get_property(ENVIRONMENT)
-    logger.info(f"Running against: {project.get_property(INTEGRATION_TARGET_URL)} ")
+    logger.info(f"Running against target: {project.get_property(INTEGRATION_TARGET_URL)} and "
+                f"public target: {project.get_property(INTEGRATION_PUBLIC_TARGET_URL)}")
     cache_wd = os.getcwd()
     try:
         os.chdir(test_dir)
