@@ -81,6 +81,7 @@ class TaskTestCase(ParentTestCase):
         target_url = "foo"
         # Configure default properties
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
+        self.project.set_property(pybuilder_integration.properties.INTEGRATION_PUBLIC_TARGET_URL, target_url)
         file_name = "test.tavern.yaml"
         self._configure_mock_test_files(file_name, "tavern")
         pybuilder_integration.tasks.verify_tavern(project=self.project, logger=mock_logger, reactor=reactor)
@@ -124,6 +125,7 @@ class TaskTestCase(ParentTestCase):
         target_url = "foo"
         # Configure default properties
         self.project.set_property(pybuilder_integration.properties.INTEGRATION_TARGET_URL, target_url)
+        self.project.set_property(pybuilder_integration.properties.INTEGRATION_PUBLIC_TARGET_URL, target_url)
         self.project.set_property(pybuilder_integration.properties.ENVIRONMENT, "dev")
         env_vars = {"dev": "foo"}
         self.project.set_property(pybuilder_integration.properties.ENVIRONMENT_VARIABLES, env_vars)
