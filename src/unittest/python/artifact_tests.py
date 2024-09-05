@@ -1,4 +1,5 @@
 import os
+import random
 
 from pybuilder.errors import BuildFailedException
 
@@ -99,6 +100,36 @@ class ArtifactManagerTestCase(ParentTestCase):
         self.assertIsNotNone(manager, "Failed to find manager")
         self.project.set_property(properties.ARTIFACT_MANAGER, None)
         self.assertRaises(BuildFailedException, get_artifact_manager, self.project)
+
+    def test_artifact_scoping(self):
+        mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()
+        directory = f"{self.tmpDir}/artifact_scoping_test"
+        cypress_test_file_path, tavern_test_file_path = self._configure_mock_tests(directory)
+        role = "foo"
+        directory_utility.package_artifacts(self.project, os.path.dirname(tavern_test_file_path), "tavern", role)
+        directory_utility.package_artifacts(self.project, os.path.dirname(cypress_test_file_path), "cypress", role)
+        # do this to create an artifact we don't want
+        self.project.name = 'not-good'
+        directory_utility.package_artifacts(self.project, os.path.dirname(cypress_test_file_path), "cypress", 'bar')
+
+        # self.assertEqual(4,os.listdir(directory_utility.prepare_dist_directory(self.project)))
+        # set back
+        self.project.name = 'integration-test-pybuilder'
+        self._download_and_assert_cypress_contents(['foo'], mock_logger)
+        self.project.set_property(properties.TESTING_SCOPE, '*')
+        self._download_and_assert_cypress_contents(['foo','bar'], mock_logger)
+
+
+    def _download_and_assert_cypress_contents(self, expected, mock_logger):
+        # default behavior is app name so make sure that works
+        directory = f"{self.tmpDir}/artifact_dest-{random.randint(1, 10000)}"
+        os.makedirs(directory)
+        self.project.set_property(properties.APPLICATION, 'integration-test')
+        _unzip_downloaded_artifacts(directory_utility.prepare_dist_directory(self.project),
+                                    directory,
+                                    mock_logger, self.project)
+        # due to default filtering we should only get foo not bar in our cypress directory
+        self.assertEqual(expected, os.listdir(f"{directory}/cypress"))
 
     def test_artifact_packaging(self):
         mock_logger, verify_mock, verify_execute, reactor = self.generate_mock()

@@ -27,6 +27,7 @@ def init_plugin(project):
                   f"\t${INTEGRATION_TARGET_URL} - (required) Full URL target for tests\n"
                   f"\t${INTEGRATION_PUBLIC_TARGET_URL} - (required) Full public URL target for tests\n"
                   f"\t${ENVIRONMENT} - (required) Environment that is being tested (ci/prod)\n"
+                  f"\t${TESTING_SCOPE} - (optional) Will limit scope of tests, default is to the same application - * can be used.\n"
                   f"\t${PROMOTE_ARTIFACT} - Promote integration tests to LATEST-${ENVIRONMENT} (default TRUE)\n"
       )
 def verify_environment(project: Project, logger: Logger, reactor: Reactor):

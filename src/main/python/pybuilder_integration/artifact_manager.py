@@ -174,13 +174,22 @@ def extract_application_role(logger, project):
     return app_group, app_name, role
 
 
+def in_scope(scope, filename):
+    if scope == "*": return True
+    return scope in filename
+
+
 def _unzip_downloaded_artifacts(dir_with_zips: str, destination: str, logger: Logger, project:Project) -> str:
+    scope = project.get_property(TESTING_SCOPE,project.get_property(APPLICATION,'*'))
     for file in os.listdir(dir_with_zips):
         # expect {tool}-{self.project.name}.zip
-        if os.path.basename(file).find("tavern") >= 0:
+        filename = os.path.basename(file)
+        if not in_scope(scope, filename):
+            continue
+        if filename.find("tavern") >= 0:
             shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/tavern",
                                   format="zip")
-        elif os.path.basename(file).find("cypress") >= 0:
+        elif filename.find("cypress") >= 0:
             shutil.unpack_archive(filename=os.path.join(dir_with_zips, file), extract_dir=f"{destination}/cypress",
                                   format="zip")
         else:
