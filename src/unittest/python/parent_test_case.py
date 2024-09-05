@@ -45,6 +45,7 @@ class ParentTestCase(TestCase):
     def setUp(self) -> None:
         self.tmpDir = tempfile.mkdtemp()
         self.project = Project(basedir=self.tmpDir)
+        self.project.name = 'integration-test-pybuilder'
         self.project.set_property(ENVIRONMENT,"unit-test")
         core_plugin.init(self.project)
         init_plugin(self.project)
