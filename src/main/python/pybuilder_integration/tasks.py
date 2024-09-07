@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 
@@ -113,7 +114,7 @@ def verify_cypress(project: Project, logger: Logger, reactor: Reactor):
 
 def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor):
     total_time = Timer.start()
-    target_url = project.get_mandatory_property(INTEGRATION_TARGET_URL)
+    public_target, target, target_file_path = _load_targets(project, work_dir)
     environment = project.get_mandatory_property(ENVIRONMENT)
     if not os.path.exists(work_dir):
         logger.info("Skipping cypress run: no tests")
@@ -135,7 +136,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     # Run the actual tests against the baseURL provided by ${integration_target}
     test_report_folder = directory_utility.prepare_reports_directory(project)
     args = ["run", "--config",
-            f"baseUrl={target_url},"
+            f"baseUrl={target},"
             f"videosFolder={test_report_folder}/videos,"
             f"screenshotsFolder={test_report_folder}/screenshots",
             "--reporter-options",
@@ -144,7 +145,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
         args.append('--record')
     _add_config_file(logger, project, args, environment, work_dir)
     environment_variables = project.get_property(ENVIRONMENT_VARIABLES, {})
-    logger.info(f"Running cypress on host: {target_url}")
+    logger.info(f"Running cypress on host: {target}")
     exec_utility.exec_command(command_name=executable, args=args,
                               failure_message="Failed to execute cypress tests", log_file_name='cypress_run.log',
                               project=project, reactor=reactor, logger=logger, working_dir=work_dir, report=False,
@@ -153,6 +154,7 @@ def _run_cypress_tests_in_directory(work_dir, logger, project, reactor: Reactor)
     if os.path.exists(f"{work_dir}/target"):
         shutil.copytree(f"{work_dir}/target", "./target", dirs_exist_ok=True)
     total_time.stop()
+    _persist_targets(public_target,target,target_file_path)
     logger.info(f"Ran Cypress Tests: {total_time.get_millis()}")
     return True
 
@@ -213,11 +215,10 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
         args.append("-v")
     if project.get_property(RUN_PARALLEL, False):
         args.extend(['-n', 'auto'])
-    os.environ['TARGET'] = project.get_property(INTEGRATION_TARGET_URL)
-    os.environ['PUBLIC_TARGET'] = project.get_property(INTEGRATION_PUBLIC_TARGET_URL)
+    public_target, target, target_file_path = _load_targets(project, test_dir)
     os.environ[ENVIRONMENT] = project.get_property(ENVIRONMENT)
-    logger.info(f"Running against target: {project.get_property(INTEGRATION_TARGET_URL)} and "
-                f"public target: {project.get_property(INTEGRATION_PUBLIC_TARGET_URL)}")
+    logger.info(f"Running against target: {target} and "
+                f"public target: {public_target}")
     cache_wd = os.getcwd()
     try:
         os.chdir(test_dir)
@@ -240,7 +241,35 @@ def _run_tavern_tests_in_dir(test_dir: str, logger: Logger, project: Project, re
                 CloudwatchLogs(project.get_property(ENVIRONMENT), project.get_property(APPLICATION), service,
                                logger).print_latest()
         raise BuildFailedException(f"Tavern tests failed see complete output here - {output_file}")
+    _persist_targets(public_target, target, target_file_path)
     return True
+
+
+def _load_targets(project, test_dir):
+    target, public_target = None, None
+    target_file_path = os.path.join(test_dir, 'target.json')
+    if os.path.exists(target_file_path):
+        with open(target_file_path) as target_file:
+            target_def = json.load(target_file)
+            if 'target' in target_def:
+                target = target_def['target']
+            if 'public_target' in target_def:
+                public_target = target_def['public_target']
+    if not target:
+        target = project.get_property(INTEGRATION_TARGET_URL)
+    if not public_target:
+        public_target = project.get_property(INTEGRATION_PUBLIC_TARGET_URL)
+    os.environ['TARGET'] = target
+    os.environ['PUBLIC_TARGET'] = public_target
+    return public_target, target, target_file_path
+
+
+def _persist_targets(public_target, target, target_file_path):
+    # if we didn't have one create a target file so we know what we ran this against
+    if not os.path.exists(target_file_path):
+        target_def = {'target': target, 'public_target': public_target}
+        with open(target_file_path, 'w') as fp:
+            json.dump(target_def, fp)
 
 
 def get_test_report_file(project, test_dir, tool="tavern"):
